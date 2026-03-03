@@ -40,8 +40,8 @@ One team member takes the **Maintainer** role on the GitHub repository. This per
 
 **Document this decision:**
 
-- Who is the Maintainer? **\*\***\_\_\_**\*\***
-- Date decided: **\*\***\_\_\_**\*\***
+- Who is the Maintainer? **Rhys Langdon**
+- Date decided: **2026-03-03**
 
 The remaining team members will have **Write** access to contribute code.
 
