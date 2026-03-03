@@ -4,7 +4,7 @@
 // The footer displayed at the bottom of every page.
 //
 // STUDENT: Update this component with your app's information:
-//   - Replace [Your App Name] with your actual app name
+//   - Replace HRM Skate Spots with your actual app name
 //   - Update navigation links to match your routes
 //   - Replace social media placeholder links with real URLs
 //   - Add any additional sections relevant to your product
@@ -19,7 +19,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           {/* --- Brand --- */}
           <div className="col-span-1 md:col-span-1">
-            <h3 className="text-lg font-semibold text-foreground">[Your App Name]</h3>
+            <h3 className="text-lg font-semibold text-foreground">HRM Skate Spots</h3>
             <p className="mt-2 text-sm text-muted-foreground">
               [Your app tagline or short description goes here. Explain what your product does in
               one or two sentences.]
@@ -130,7 +130,7 @@ export default function Footer() {
         {/* --- Bottom Bar --- */}
         <div className="mt-12 border-t border-border pt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} [Your App Name]. All rights reserved.
+            &copy; {new Date().getFullYear()} HRM Skate Spots. All rights reserved.
           </p>
         </div>
       </div>

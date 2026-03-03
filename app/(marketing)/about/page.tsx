@@ -13,7 +13,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'About',
-  description: 'Learn about [Your App Name] — our mission, team, and story.',
+  description: 'Learn about HRM Skate Spots — our mission, team, and story.',
 };
 
 // STUDENT: Replace with your actual team members
@@ -31,7 +31,7 @@ export default function AboutPage() {
         {/* --- Mission / Vision --- */}
         <section className="text-center">
           <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-            About [Your App Name]
+            About HRM Skate Spots
           </h1>
           <p className="mt-6 text-lg text-muted-foreground">
             [Your mission statement — what problem does your product solve and why does your team

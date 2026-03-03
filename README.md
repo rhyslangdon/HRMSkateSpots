@@ -1,4 +1,4 @@
-# [Your App Name]
+# HRM Skate Spots
 
 > **A Next.js SaaS Starter Template for Web Development Teams**
 

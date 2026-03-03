@@ -17,7 +17,7 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Pricing',
-  description: '[Your App Name] pricing plans — find the right plan for your needs.',
+  description: 'HRM Skate Spots pricing plans — find the right plan for your needs.',
 };
 
 // STUDENT: Update these pricing tiers with your actual plans

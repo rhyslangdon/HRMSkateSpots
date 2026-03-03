@@ -50,7 +50,7 @@ export default function SignupPage() {
         <div className="text-center">
           <h1 className="text-3xl font-bold text-foreground">Create your account</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Get started with [Your App Name] today
+            Get started with HRM Skate Spots today
           </p>
         </div>
 

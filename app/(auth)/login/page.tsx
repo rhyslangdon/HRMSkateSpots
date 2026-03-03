@@ -40,7 +40,7 @@ export default function LoginPage() {
         <div className="text-center">
           <h1 className="text-3xl font-bold text-foreground">Welcome back</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Log in to your [Your App Name] account
+            Log in to your HRM Skate Spots account
           </p>
         </div>
 

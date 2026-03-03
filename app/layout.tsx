@@ -37,8 +37,8 @@ const inter = Inter({
 // See /docs/performance.md for more on metadata and SEO.
 export const metadata: Metadata = {
   title: {
-    default: '[Your App Name]',
-    template: '%s | [Your App Name]',
+    default: 'HRM Skate Spots',
+    template: '%s | HRM Skate Spots',
   },
   description: '[Your app description — explain what your SaaS product does]',
 };
