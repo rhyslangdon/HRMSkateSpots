@@ -46,7 +46,7 @@ Complete this agreement as a team during initial setup (SETUP.md Step 6):
 ┌──────────────────────────────────────────────────────────────┐
 │                    TEAM AI AGREEMENT                         │
 │                                                              │
-│  Our team agrees to use: [tool/model name]                   │
+│  Our team agrees to use: [Claude Opus 4.6]                   │
 │                                                              │
 │  We will use it for:                                         │
 │  - [specific use cases, e.g., code generation, debugging]    │
@@ -57,9 +57,9 @@ Complete this agreement as a team during initial setup (SETUP.md Step 6):
 │  - [any other team-specific restrictions]                    │
 │                                                              │
 │  Agreed by:                                                  │
-│  - [Name] — [Date]                                           │
-│  - [Name] — [Date]                                           │
-│  - [Name] — [Date]                                           │
+│  - [Rhys Langdon] — [March 3rd, 2026]                                           │
+│  - [Braden Sampson] — [March 3rd, 2026]                                           │
+│  - [Zachary Boutilier] — [March 3rd, 2026]                                           │
 │  - [Name] — [Date]                                           │
 └──────────────────────────────────────────────────────────────┘
 ```
