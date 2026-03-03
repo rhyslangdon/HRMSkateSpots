@@ -57,9 +57,9 @@ Complete this agreement as a team during initial setup (SETUP.md Step 6):
 │  - [any other team-specific restrictions]                    │
 │                                                              │
 │  Agreed by:                                                  │
-│  - [Rhys Langdon] — [March 3rd, 2026]                                           │
-│  - [Braden Sampson] — [March 3rd, 2026]                                           │
-│  - [Zachary Boutilier] — [March 3rd, 2026]                                           │
+│  - [Rhys Langdon] — [March 3rd, 2026]                        │
+│  - [Braden Sampson] — [March 3rd, 2026]                      │
+│  - [Zachary Boutilier] — [March 3rd, 2026]                   │
 │  - [Name] — [Date]                                           │
 └──────────────────────────────────────────────────────────────┘
 ```
