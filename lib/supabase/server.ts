@@ -34,10 +34,24 @@ export async function createClient() {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             );
-          } catch {
-            // The `setAll` method is called from a Server Component where
-            // cookies cannot be set. This can be safely ignored if you have
-            // middleware/proxy refreshing user sessions.
+          } catch (error) {
+            // The `setAll` method may be called from a Server Component where
+            // cookies cannot be set. In that specific case, Next.js throws an
+            // error which we can safely ignore if you have middleware/proxy
+            // refreshing user sessions.
+            const message =
+              error instanceof Error ? error.message : String(error);
+
+            if (!/server component/i.test(message)) {
+              // Unexpected error when setting cookies – log so it is not
+              // silently hidden. We do not rethrow to preserve existing
+              // behavior.
+              // eslint-disable-next-line no-console
+              console.error(
+                '[supabase] Unexpected error while setting auth cookies in createClient:',
+                error
+              );
+            }
           }
         },
       },
