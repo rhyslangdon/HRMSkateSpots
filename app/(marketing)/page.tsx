@@ -17,7 +17,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: '[Your App Name] — [Your Tagline Here]',
+  title: 'HRM Skate Spots — [Your Tagline Here]',
   description: '[Describe what your SaaS product does in 1-2 sentences for SEO]',
 };
 

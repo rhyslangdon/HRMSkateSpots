@@ -105,14 +105,14 @@ Hold your first sprint planning session:
 
 **Suggested Sprint 1 tasks:**
 
-- Replace all `[Your App Name]` placeholders with your product name
+- Replace all `HRM Skate Spots` placeholders with your product name
 - Update the logo and branding colors
 - Customize the landing page content
 - Set up your BaaS provider (Supabase, Firebase, or Clerk)
 
 ## Step 9: Replace Placeholder Branding
 
-Search the project for `[Your App Name]` and replace it with your actual product name. Files that contain placeholders:
+Search the project for `HRM Skate Spots` and replace it with your actual product name. Files that contain placeholders:
 
 - [ ] `app/layout.tsx` — site title and description in metadata
 - [ ] `components/layout/Navbar.tsx` — logo text and navigation links
@@ -123,7 +123,7 @@ Search the project for `[Your App Name]` and replace it with your actual product
 - [ ] `public/logo.svg` — replace with your logo
 - [ ] `.env.example` — app name variable
 
-**Tip:** Use your editor's "Find and Replace" across all files (Cmd+Shift+H or Ctrl+Shift+H in VS Code) to find all instances of `[Your App Name]`.
+**Tip:** Use your editor's "Find and Replace" across all files (Cmd+Shift+H or Ctrl+Shift+H in VS Code) to find all instances of `HRM Skate Spots`.
 
 ## Step 10: Practice Run
 

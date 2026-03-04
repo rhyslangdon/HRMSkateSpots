@@ -29,7 +29,7 @@ export default function Navbar() {
         <div className="flex h-16 items-center justify-between">
           {/* --- Logo --- */}
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo.svg" alt="[Your App Name] logo" width={120} height={40} priority />
+            <Image src="/logo.svg" alt="HRM Skate Spots logo" width={120} height={40} priority />
           </Link>
 
           {/* --- Desktop Navigation --- */}

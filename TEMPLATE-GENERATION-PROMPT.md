@@ -321,7 +321,7 @@ Follow `create-next-app` App Router conventions with minimal extensions:
   - Login/Signup CTA buttons
   - Mobile hamburger menu functional with Tailwind only (no JS dependencies)
 - Footer with:
-  - Placeholder copyright `© [Year] [Your App Name]`
+  - Placeholder copyright `© [Year] HRM Skate Spots`
   - Navigation links grouped by section
   - Social media placeholder links
 - Root layout wrapping all pages with Navbar and Footer
@@ -473,7 +473,7 @@ Include `app/api/README.md` directing students to `/docs/api-routes.md`.
 
 # Application
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_APP_NAME=[Your App Name]
+NEXT_PUBLIC_APP_NAME=HRM Skate Spots
 
 # Add your project-specific environment variables below as you build
 ```
@@ -908,7 +908,7 @@ Step-by-step guide for immediately after receiving the GitHub Classroom assignme
 6. Team agrees on AI tools — complete the AI team agreement in `/docs/ai-usage-policy.md`
 7. Set up GitHub Projects board — follow `/docs/agile-process.md`
 8. Create Sprint 1 issues — first sprint planning session
-9. Replace placeholder branding — checklist of every file containing `[Your App Name]`
+9. Replace placeholder branding — checklist of every file containing `HRM Skate Spots`
 10. Practice run — make a small change on a feature branch, open a PR, review, merge — get comfortable with the workflow before real work begins
 
 ### `CONTRIBUTING.md`
@@ -1077,7 +1077,7 @@ Every file generated must meet these standards:
 8. **Educational comments** — explain patterns and point to relevant documentation
 9. **No hardcoded secrets** of any kind anywhere
 10. **All imports resolve** — no broken import paths
-11. **Placeholder text is obvious** — always use `[Your App Name]` format
+11. **Placeholder text is obvious** — always use `HRM Skate Spots` format
 12. **Comment blocks on every page** — explaining what the page is and what students need to replace
 
 ---

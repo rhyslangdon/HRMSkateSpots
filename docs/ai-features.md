@@ -172,7 +172,7 @@ Always set a system prompt to guide the AI's behavior:
 ```typescript
 const result = streamText({
   model: openrouter('meta-llama/llama-3.1-8b-instruct:free'),
-  system: `You are a helpful assistant for [Your App Name]. 
+  system: `You are a helpful assistant for HRM Skate Spots. 
     You help users with [specific domain]. 
     Keep responses concise and relevant.
     Do not discuss topics outside of [your domain].`,
