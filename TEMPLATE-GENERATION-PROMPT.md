@@ -220,7 +220,7 @@ Follow `create-next-app` App Router conventions with minimal extensions:
 - Neutral, generic color palette using Tailwind defaults — easy for students to restyle
 - Consistent navigation across all pages
 - Professional SaaS aesthetic that serves as a realistic starting point
-- All placeholder text must use the format `HRM Skate Spots`, `[Your Tagline Here]` etc. — explicitly obvious placeholders
+- All placeholder text must use the format `[Your App Name]`, `[Your Tagline Here]` etc. — explicitly obvious placeholders
 - Every page must include a comment block at the top explaining what it is and what students should replace
 - Include a simple text-based or geometric SVG placeholder logo in `/public/logo.svg`
 - All pages must have placeholder metadata (title, description) using Next.js Metadata API
