@@ -15,6 +15,7 @@
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import MapWrapper from '@/components/MapWrapper';
 
 export const metadata: Metadata = {
   title: 'HRM Skate Spots — [Your Tagline Here]',
@@ -48,6 +49,13 @@ export default function HomePage() {
               View Pricing
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* ===== MAP SECTION ===== */}
+      <section className="px-4 pb-20 sm:px-6 lg:px-8">
+        <div className="mx-auto h-125 max-w-5xl overflow-hidden rounded-xl border border-border shadow-sm">
+          <MapWrapper />
         </div>
       </section>
     </div>
