@@ -9,8 +9,20 @@ import { createBrowserClient } from '@supabase/ssr';
  *   const supabase = createClient();
  */
 export function createClient() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl) {
+    throw new Error(
+      'Missing NEXT_PUBLIC_SUPABASE_URL environment variable. Please set it before using the Supabase client.'
+    );
+  }
+
+  if (!supabaseAnonKey) {
+    throw new Error(
+      'Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable. Please set it before using the Supabase client.'
+    );
+  }
+
+  return createBrowserClient(supabaseUrl, supabaseAnonKey);
 }

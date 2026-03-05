@@ -12,9 +12,18 @@ import { cookies } from 'next/headers';
 export async function createClient() {
   const cookieStore = await cookies();
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      'Supabase environment variables NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set before creating the server client.'
+    );
+  }
+
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {
@@ -25,10 +34,24 @@ export async function createClient() {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             );
-          } catch {
-            // The `setAll` method is called from a Server Component where
-            // cookies cannot be set. This can be safely ignored if you have
-            // middleware/proxy refreshing user sessions.
+          } catch (error) {
+            // The `setAll` method may be called from a Server Component where
+            // cookies cannot be set. In that specific case, Next.js throws an
+            // error which we can safely ignore if you have middleware/proxy
+            // refreshing user sessions.
+            const message =
+              error instanceof Error ? error.message : String(error);
+
+            if (!/server component/i.test(message)) {
+              // Unexpected error when setting cookies – log so it is not
+              // silently hidden. We do not rethrow to preserve existing
+              // behavior.
+              // eslint-disable-next-line no-console
+              console.error(
+                '[supabase] Unexpected error while setting auth cookies in createClient:',
+                error
+              );
+            }
           }
         },
       },
