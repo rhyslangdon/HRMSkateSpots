@@ -1,25 +1,8 @@
-// =============================================================================
-// SIGNUP PAGE
-// =============================================================================
-// Signup form UI — NO authentication logic is implemented.
-//
-// STUDENT: You MUST implement authentication yourself. This is just a UI shell.
-//
-// What you need to do:
-//   1. Choose an auth provider (Supabase Auth, Firebase Auth, Clerk, NextAuth, etc.)
-//   2. Follow their documentation to implement the signup flow
-//   3. Wire up the form submission to your auth provider's signup method
-//   4. Add proper validation (password strength, matching passwords, etc.)
-//   5. Handle errors (email already exists, weak password, etc.)
-//   6. Redirect to /dashboard or show a verification message on success
-//
-// This form currently does NOTHING when submitted. It only shows a console log.
-// =============================================================================
-
 'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -28,21 +11,60 @@ export default function SignupPage() {
     password: '',
     confirmPassword: '',
   });
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
-  // STUDENT: Replace this with your actual auth provider's signup method
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
 
-    // Basic client-side validation example
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match.');
+      setError('Passwords do not match.');
       return;
     }
 
-    // TODO: STUDENT: Implement authentication signup
-    console.log('Signup attempted (not implemented yet):', formData.email);
-    alert('Authentication is not yet implemented. See the code comments for guidance.');
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+
+    setLoading(true);
+
+    const supabase = createClient();
+    const { error } = await supabase.auth.signUp({
+      email: formData.email,
+      password: formData.password,
+      options: {
+        data: {
+          display_name: formData.name,
+        },
+      },
+    });
+
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    setSuccess(true);
+    setLoading(false);
   };
+
+  if (success) {
+    return (
+      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md text-center">
+          <h1 className="text-3xl font-bold text-foreground">Check your email</h1>
+          <p className="mt-4 text-sm text-muted-foreground">
+            We sent a confirmation link to <strong>{formData.email}</strong>. Click the link to
+            activate your account.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
@@ -55,6 +77,11 @@ export default function SignupPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          {error && (
+            <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
           {/* Name */}
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-foreground">
@@ -127,12 +154,12 @@ export default function SignupPage() {
             />
           </div>
 
-          {/* Submit */}
           <button
             type="submit"
-            className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            disabled={loading}
+            className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
           >
-            Create account
+            {loading ? 'Creating account…' : 'Create account'}
           </button>
         </form>
 

@@ -1,37 +1,38 @@
-// =============================================================================
-// LOGIN PAGE
-// =============================================================================
-// Login form UI — NO authentication logic is implemented.
-//
-// STUDENT: You MUST implement authentication yourself. This is just a UI shell.
-//
-// What you need to do:
-//   1. Choose an auth provider (Supabase Auth, Firebase Auth, Clerk, NextAuth, etc.)
-//   2. Follow their documentation to implement the login flow
-//   3. Wire up the form submission to your auth provider's login method
-//   4. Handle errors (invalid credentials, network issues, etc.)
-//   5. Redirect to /dashboard on successful login
-//
-// This form currently does NOTHING when submitted. It only shows a console log.
-// =============================================================================
-
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  // STUDENT: Replace this with your actual auth provider's login method
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: STUDENT: Implement authentication login
-    console.log('Login attempted (not implemented yet):', formData.email);
-    alert('Authentication is not yet implemented. See the code comments for guidance.');
+    setError(null);
+    setLoading(true);
+
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithPassword({
+      email: formData.email,
+      password: formData.password,
+    });
+
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    router.push('/dashboard');
+    router.refresh();
   };
 
   return (
@@ -45,6 +46,11 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          {error && (
+            <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
           {/* Email */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-foreground">
@@ -81,12 +87,12 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Submit */}
           <button
             type="submit"
-            className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            disabled={loading}
+            className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
           >
-            Log in
+            {loading ? 'Logging in…' : 'Log in'}
           </button>
         </form>
 
