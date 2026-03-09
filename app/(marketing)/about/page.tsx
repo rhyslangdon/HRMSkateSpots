@@ -18,10 +18,9 @@ export const metadata: Metadata = {
 
 // STUDENT: Replace with your actual team members
 const team = [
-  { name: '[Team Member 1]', role: '[Role / Title]', bio: '[Short bio about this team member]' },
-  { name: '[Team Member 2]', role: '[Role / Title]', bio: '[Short bio about this team member]' },
-  { name: '[Team Member 3]', role: '[Role / Title]', bio: '[Short bio about this team member]' },
-  { name: '[Team Member 4]', role: '[Role / Title]', bio: '[Short bio about this team member]' },
+  { name: 'Rhys Langdon', role: 'Developer', bio: '...' },
+  { name: 'Braden Sampson', role: 'Developer', bio: '...' },
+  { name: 'Zachary Boutilier', role: 'Developer', bio: '...' },
 ];
 
 export default function AboutPage() {
@@ -34,26 +33,32 @@ export default function AboutPage() {
             About HRM Skate Spots
           </h1>
           <p className="mt-6 text-lg text-muted-foreground">
-            [Your mission statement — what problem does your product solve and why does your team
-            care about solving it? Write 2-3 sentences that capture your purpose.]
+            HRM Skate Spots helps skaters across the Halifax Regional Municipality discover, share,
+            and review the best spots to ride. Finding quality skate spots in HRM has always relied
+            on word of mouth — we&apos;re building a community-driven platform so every skater can
+            explore new terrain and connect with the local scene.
           </p>
         </section>
 
         {/* --- Story --- */}
-        <section className="mt-20">
+        <section className="mt-20 text-center">
           <h2 className="text-2xl font-bold text-foreground">Our Story</h2>
           <div className="mt-6 space-y-4 text-muted-foreground">
             <p>
-              [Tell the story of how your product came to be. What inspired you to build it? What
-              problem did you see that needed solving?]
+              We wanted an app that could show skaters the best spots in HRM — but when we looked,
+              there was nothing out there. So we built HRM Skate Spots so we could share our
+              favourite spots and help other skaters discover new ones.
             </p>
             <p>
-              [Describe your journey — the challenges you faced, the decisions you made, and where
-              you are today. This is your chance to connect with visitors on a personal level.]
+              We started with a simple map and a few reviews, but as our community grew, we added
+              features like user profiles, photo galleries, and a spot rating system. Along the way,
+              we learned a lot about building a product from scratch — the challenges of scaling,
+              the importance of user feedback, and the joy of creating something that people love to
+              use.
             </p>
             <p>
-              [Share your vision for the future — where is the product heading? What impact do you
-              want to have?]
+              We plan to keep improving HRM Skate Spots with new features, better user experiences,
+              and more ways for the communities to connect and share their favorite spots.
             </p>
           </div>
         </section>
@@ -61,11 +66,9 @@ export default function AboutPage() {
         {/* --- Team --- */}
         <section className="mt-20">
           <h2 className="text-center text-2xl font-bold text-foreground">Meet the Team</h2>
-          <p className="mt-4 text-center text-muted-foreground">
-            [A brief intro about your team — what brings you together and what you&apos;re building]
-          </p>
+          <p className="mt-4 text-center text-muted-foreground"></p>
 
-          <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2">
+          <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-3">
             {team.map((member) => (
               <div key={member.name} className="rounded-xl border border-border p-6 text-center">
                 {/* STUDENT: Replace this placeholder with actual team photos */}
