@@ -58,7 +58,7 @@ export default function AboutPage() {
             </p>
             <p>
               We plan to keep improving HRM Skate Spots with new features, better user experiences,
-              and more ways for the communities to connect and share their favorite spots.
+              and more ways for the communities to connect and share their favourite spots.
             </p>
           </div>
         </section>
