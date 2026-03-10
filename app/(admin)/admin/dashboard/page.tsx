@@ -24,25 +24,19 @@
 // =============================================================================
 
 import type { Metadata } from 'next';
+import { requireAdmin } from '@/lib/supabase/admin';
 
 export const metadata: Metadata = {
   title: 'Admin Dashboard',
   description: 'Admin-only dashboard for managing the application.',
 };
 
-export default function AdminDashboardPage() {
+export default async function AdminDashboardPage() {
+  await requireAdmin();
+
   return (
     <div className="px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        {/* --- Warning Banner --- */}
-        <div className="mb-8 rounded-lg border border-yellow-300 bg-yellow-50 p-4">
-          <p className="text-sm font-medium text-yellow-800">
-            ⚠️ <strong>Unprotected Route:</strong> This admin dashboard is currently accessible to
-            everyone. Implement authentication and RBAC before deploying. See{' '}
-            <code className="rounded bg-yellow-100 px-1">/docs/admin-guide.md</code> for guidance.
-          </p>
-        </div>
-
         {/* --- Header --- */}
         <div>
           <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
