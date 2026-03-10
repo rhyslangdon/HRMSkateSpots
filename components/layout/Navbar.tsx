@@ -61,8 +61,18 @@ export default function Navbar() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* --- Logo --- */}
-          <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo.svg" alt="HRM Skate Spots logo" width={120} height={40} priority />
+          <Link href="/" className="flex items-center gap-2 h-16">
+            <Image
+              src="/bearingLogo.png"
+              alt="HRM Skate Spots logo"
+              width={180}
+              height={60}
+              priority
+              className="max-h-14 w-auto object-contain"
+            />
+            <span className="text-xl font-bold tracking-tight text-foreground whitespace-nowrap">
+              HRM Skate Spots
+            </span>
           </Link>
 
           {/* --- Desktop Navigation --- */}
