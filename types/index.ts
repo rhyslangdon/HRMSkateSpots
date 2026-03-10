@@ -40,3 +40,34 @@ export interface ApiError {
   message: string;
   statusCode: number;
 }
+
+export type SpotType = 'street' | 'park' | 'diy' | 'transition' | 'flatground' | 'other';
+export type Difficulty = 'beginner' | 'intermediate' | 'advanced' | 'all';
+export type StreetFeature = 'ledge' | 'stairs' | 'handrail' | 'gap' | 'bank' | 'other';
+
+export interface Spot {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  latitude: number;
+  longitude: number;
+  address: string | null;
+  city: string | null;
+  spot_type: SpotType;
+  street_feature: StreetFeature | null;
+  difficulty: Difficulty;
+  image_url: string | null;
+  is_approved: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SpotFormData {
+  name: string;
+  description: string;
+  address: string;
+  spot_type: SpotType;
+  street_feature: StreetFeature | null;
+  difficulty: Difficulty;
+}
