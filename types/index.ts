@@ -71,3 +71,29 @@ export interface SpotFormData {
   street_feature: StreetFeature | null;
   difficulty: Difficulty;
 }
+
+/**
+ * Possible values for the `role` column in the `profiles` table.
+ * Determines access level: 'admin' users can access /admin routes.
+ */
+export type UserRole = 'user' | 'admin';
+
+/**
+ * Possible values for the `subscription_status` column in the `profiles` table.
+ * Controls feature access: 'premium' unlocks paid features.
+ */
+export type SubscriptionStatus = 'free' | 'premium';
+
+/**
+ * Mirrors a row from the `profiles` table in Supabase.
+ * Extends Supabase Auth by storing role and subscription data.
+ * The `id` foreign-keys to `auth.users.id`.
+ */
+export interface Profile {
+  id: string;
+  email: string;
+  display_name: string | null;
+  role: UserRole;
+  subscription_status: SubscriptionStatus;
+  created_at: string;
+}

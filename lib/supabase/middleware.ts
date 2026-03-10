@@ -60,8 +60,20 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect non-admin users away from admin routes
-  if (user && request.nextUrl.pathname.startsWith('/admin')) {
+  // ---------------------------------------------------------------------------
+  // Admin route protection (RBAC)
+  // ---------------------------------------------------------------------------
+  // If the user is authenticated but requesting an /admin/* route, verify
+  // their `role` in the `profiles` table. Non-admin users are redirected
+  // to the home page before the page ever renders.
+  //
+  // This is the FIRST line of defence. The admin dashboard page itself
+  // calls `requireAdmin()` as a second server-side check.
+  // ---------------------------------------------------------------------------
+  if (
+    user &&
+    (request.nextUrl.pathname === '/admin' || request.nextUrl.pathname.startsWith('/admin/'))
+  ) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
