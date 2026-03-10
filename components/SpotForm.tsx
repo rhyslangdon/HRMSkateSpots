@@ -36,17 +36,35 @@ interface SpotFormProps {
   longitude: number;
   onSaved: () => void;
   onCancel: () => void;
+  initialData?: any;
 }
 
-export default function SpotForm({ latitude, longitude, onSaved, onCancel }: SpotFormProps) {
-  const [formData, setFormData] = useState<SpotFormData>({
-    name: '',
-    description: '',
-    address: '',
-    spot_type: 'street',
-    street_feature: null,
-    difficulty: 'beginner',
-  });
+export default function SpotForm({
+  latitude,
+  longitude,
+  onSaved,
+  onCancel,
+  initialData,
+}: SpotFormProps) {
+  const [formData, setFormData] = useState<SpotFormData>(
+    initialData
+      ? {
+          name: initialData.name || '',
+          description: initialData.description || '',
+          address: initialData.address || '',
+          spot_type: initialData.spot_type || 'street',
+          street_feature: initialData.street_feature || null,
+          difficulty: initialData.difficulty || 'beginner',
+        }
+      : {
+          name: '',
+          description: '',
+          address: '',
+          spot_type: 'street',
+          street_feature: null,
+          difficulty: 'beginner',
+        }
+  );
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,11 +93,28 @@ export default function SpotForm({ latitude, longitude, onSaved, onCancel }: Spo
     setSubmitting(true);
     try {
       const imageUrl = await uploadImage();
-      const res = await fetch('/api/spots', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, latitude, longitude, image_url: imageUrl }),
-      });
+      let res;
+      if (initialData && initialData.id) {
+        // PATCH for edit
+        res = await fetch('/api/spots', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: initialData.id,
+            ...formData,
+            latitude,
+            longitude,
+            image_url: imageUrl,
+          }),
+        });
+      } else {
+        // POST for new
+        res = await fetch('/api/spots', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...formData, latitude, longitude, image_url: imageUrl }),
+        });
+      }
 
       if (!res.ok) {
         const data = await res.json();
@@ -104,7 +139,9 @@ export default function SpotForm({ latitude, longitude, onSaved, onCancel }: Spo
     >
       <div className="flex items-center gap-1">
         <span className="text-xs">📍</span>
-        <p className="text-xs font-bold text-gray-800">Add Skate Spot</p>
+        <p className="text-xs font-bold text-gray-800">
+          {initialData ? 'Edit Skate Spot' : 'Add Skate Spot'}
+        </p>
         <span className="ml-auto text-[9px] text-gray-400">
           {latitude.toFixed(4)}, {longitude.toFixed(4)}
         </span>

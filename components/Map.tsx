@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaf
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import SpotForm from '@/components/SpotForm';
+import { createClient } from '@/lib/supabase/client';
 import type { Spot } from '@/types';
 
 // Fix default marker icon paths (broken by webpack bundling)
@@ -31,8 +32,13 @@ function ClickHandler({ onMapClick }: { onMapClick: (latlng: [number, number]) =
 export default function Map() {
   const [spots, setSpots] = useState<Spot[]>([]);
   const [pendingPosition, setPendingPosition] = useState<[number, number] | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [editingSpot, setEditingSpot] = useState<Spot | null>(null);
+  const [deleteSpot, setDeleteSpot] = useState<Spot | null>(null);
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
 
   useEffect(() => {
+    const supabase = createClient();
     async function loadSpots() {
       try {
         const res = await fetch('/api/spots');
@@ -45,6 +51,25 @@ export default function Map() {
       }
     }
     loadSpots();
+    // Fetch user ID
+    async function fetchUserId() {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        setUserId(user?.id ?? null);
+      } catch {
+        setUserId(null);
+      }
+    }
+    fetchUserId();
+    // Listen for auth state changes
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserId(session?.user?.id ?? null);
+    });
+    return () => {
+      authListener?.subscription?.unsubscribe();
+    };
   }, []);
 
   function handleMapClick(latlng: [number, number]) {
@@ -53,6 +78,7 @@ export default function Map() {
 
   function handleSpotSaved() {
     setPendingPosition(null);
+    setEditingSpot(null);
     async function reload() {
       try {
         const res = await fetch('/api/spots');
@@ -67,6 +93,43 @@ export default function Map() {
     reload();
   }
 
+  function handleEditSpot(spot: Spot) {
+    setEditingSpot(spot);
+    setPendingPosition([spot.latitude, spot.longitude]);
+  }
+
+  function handleDeleteSpot(spot: Spot) {
+    if (!userId || spot.user_id !== userId) return;
+    setDeleteSpot(spot);
+    setShowDeletePopup(true);
+  }
+
+  async function confirmDeleteSpot() {
+    if (!deleteSpot) return;
+    try {
+      const res = await fetch('/api/spots', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: deleteSpot.id }),
+      });
+      if (res.ok) {
+        handleSpotSaved();
+        setShowDeletePopup(false);
+        setDeleteSpot(null);
+      } else {
+        const data = await res.json();
+        alert(data.message || 'Failed to delete spot.');
+      }
+    } catch {
+      alert('Network error. Please try again.');
+    }
+  }
+
+  function cancelDeleteSpot() {
+    setShowDeletePopup(false);
+    setDeleteSpot(null);
+  }
+
   function handleCancelPin() {
     setPendingPosition(null);
   }
@@ -76,61 +139,176 @@ export default function Map() {
   }, []);
 
   return (
-    <MapContainer
-      center={HRM_CENTER}
-      zoom={DEFAULT_ZOOM}
-      scrollWheelZoom={true}
-      className="h-full w-full rounded-xl"
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <ClickHandler onMapClick={handleMapClick} />
-      {pendingPosition && (
-        <Marker position={pendingPosition} ref={pendingMarkerRef}>
-          <Popup eventHandlers={{ remove: handleCancelPin }} minWidth={240} maxWidth={300}>
-            <SpotForm
-              latitude={pendingPosition[0]}
-              longitude={pendingPosition[1]}
-              onSaved={handleSpotSaved}
-              onCancel={handleCancelPin}
-            />
-          </Popup>
-        </Marker>
-      )}
-      {spots.map((spot) => (
-        <Marker key={spot.id} position={[spot.latitude, spot.longitude]}>
-          <Popup minWidth={220} maxWidth={280}>
-            <div className="flex flex-col gap-2">
-              {spot.image_url && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={spot.image_url}
-                  alt={spot.name}
-                  className="h-32 w-full rounded object-cover"
-                />
-              )}
-              <p className="text-sm font-semibold">{spot.name}</p>
-              {spot.description && <p className="text-xs text-gray-600">{spot.description}</p>}
-              <div className="flex flex-wrap gap-1">
-                <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700">
-                  {spot.spot_type}
-                </span>
-                {spot.street_feature && (
-                  <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-medium text-purple-700">
-                    {spot.street_feature}
-                  </span>
+    <>
+      {/* ...existing code up to spots.map... */}
+      <MapContainer
+        center={HRM_CENTER}
+        zoom={DEFAULT_ZOOM}
+        scrollWheelZoom={true}
+        className="h-full w-full rounded-xl"
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <ClickHandler onMapClick={handleMapClick} />
+        {pendingPosition && (
+          <Marker position={pendingPosition} ref={pendingMarkerRef}>
+            <Popup eventHandlers={{ remove: handleCancelPin }} minWidth={240} maxWidth={300}>
+              <SpotForm
+                latitude={pendingPosition[0]}
+                longitude={pendingPosition[1]}
+                onSaved={handleSpotSaved}
+                onCancel={handleCancelPin}
+                {...(editingSpot ? { initialData: editingSpot } : {})}
+              />
+            </Popup>
+          </Marker>
+        )}
+        {spots.map((spot) => (
+          <Marker key={spot.id} position={[spot.latitude, spot.longitude]}>
+            <Popup minWidth={220} maxWidth={280}>
+              <div className="flex flex-col gap-2">
+                {spot.image_url && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={spot.image_url}
+                    alt={spot.name}
+                    className="h-32 w-full rounded object-cover"
+                  />
                 )}
-                <span className="rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-medium text-green-700">
-                  {spot.difficulty}
-                </span>
+                <p className="text-sm font-semibold">{spot.name}</p>
+                {spot.description && <p className="text-xs text-gray-600">{spot.description}</p>}
+                <div className="flex flex-wrap gap-1">
+                  <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700">
+                    {spot.spot_type}
+                  </span>
+                  {spot.street_feature && (
+                    <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-medium text-purple-700">
+                      {spot.street_feature}
+                    </span>
+                  )}
+                  <span className="rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-medium text-green-700">
+                    {spot.difficulty}
+                  </span>
+                </div>
+                {spot.address && <p className="text-[10px] text-gray-400">{spot.address}</p>}
+                {userId && spot.user_id === userId && (
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      className="rounded bg-yellow-500 px-2 py-1 text-xs text-white hover:bg-yellow-600"
+                      onClick={() => handleEditSpot(spot)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600"
+                      onClick={() => setDeleteSpot(spot)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+                {deleteSpot && deleteSpot.id === spot.id && (
+                  <div className="mt-2 p-2 rounded bg-white shadow flex flex-col items-center">
+                    <p className="text-sm mb-4">
+                      Are you sure you want to delete{' '}
+                      <span className="font-bold">{deleteSpot.name}</span>?
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        className="rounded bg-red-500 px-4 py-1 text-xs text-white hover:bg-red-600"
+                        onClick={confirmDeleteSpot}
+                      >
+                        Delete
+                      </button>
+                      <button
+                        className="rounded bg-gray-200 px-4 py-1 text-xs text-gray-700 hover:bg-gray-300"
+                        onClick={cancelDeleteSpot}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-              {spot.address && <p className="text-[10px] text-gray-400">{spot.address}</p>}
-            </div>
-          </Popup>
-        </Marker>
-      ))}
-    </MapContainer>
+            </Popup>
+          </Marker>
+        ))}
+      </MapContainer>
+      <MapContainer
+        center={HRM_CENTER}
+        zoom={DEFAULT_ZOOM}
+        scrollWheelZoom={true}
+        className="h-full w-full rounded-xl"
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <ClickHandler onMapClick={handleMapClick} />
+        {pendingPosition && (
+          <Marker position={pendingPosition} ref={pendingMarkerRef}>
+            <Popup eventHandlers={{ remove: handleCancelPin }} minWidth={240} maxWidth={300}>
+              <SpotForm
+                latitude={pendingPosition[0]}
+                longitude={pendingPosition[1]}
+                onSaved={handleSpotSaved}
+                onCancel={handleCancelPin}
+                {...(editingSpot ? { initialData: editingSpot } : {})}
+              />
+            </Popup>
+          </Marker>
+        )}
+        {spots.map((spot) => (
+          <Marker key={spot.id} position={[spot.latitude, spot.longitude]}>
+            <Popup minWidth={220} maxWidth={280}>
+              <div className="flex flex-col gap-2">
+                {spot.image_url && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={spot.image_url}
+                    alt={spot.name}
+                    className="h-32 w-full rounded object-cover"
+                  />
+                )}
+                <p className="text-sm font-semibold">{spot.name}</p>
+                {spot.description && <p className="text-xs text-gray-600">{spot.description}</p>}
+                <div className="flex flex-wrap gap-1">
+                  <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700">
+                    {spot.spot_type}
+                  </span>
+                  {spot.street_feature && (
+                    <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-medium text-purple-700">
+                      {spot.street_feature}
+                    </span>
+                  )}
+                  <span className="rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-medium text-green-700">
+                    {spot.difficulty}
+                  </span>
+                </div>
+                {spot.address && <p className="text-[10px] text-gray-400">{spot.address}</p>}
+                {userId && spot.user_id === userId && (
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      className="rounded bg-yellow-500 px-2 py-1 text-xs text-white hover:bg-yellow-600"
+                      onClick={() => handleEditSpot(spot)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600"
+                      onClick={() => handleDeleteSpot(spot)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+      </MapContainer>
+    </>
   );
 }

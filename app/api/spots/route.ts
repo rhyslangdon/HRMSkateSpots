@@ -28,6 +28,117 @@ export async function GET() {
   }
 }
 
+// PATCH: Edit a spot (only if user is owner)
+export async function PATCH(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized', message: 'You must be logged in to edit a spot.' },
+        { status: 401 }
+      );
+    }
+    const body = await request.json();
+    const { id, ...updateData } = body;
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Validation Error', message: 'Spot ID is required.' },
+        { status: 400 }
+      );
+    }
+    // Check ownership
+    const { data: spot, error: fetchError } = await supabase
+      .from('spots')
+      .select('user_id')
+      .eq('id', id)
+      .single();
+    if (fetchError || !spot) {
+      return NextResponse.json({ error: 'Not Found', message: 'Spot not found.' }, { status: 404 });
+    }
+    if (spot.user_id !== user.id) {
+      return NextResponse.json(
+        { error: 'Forbidden', message: 'You can only edit your own spots.' },
+        { status: 403 }
+      );
+    }
+    // Update spot
+    const { data: updated, error: updateError } = await supabase
+      .from('spots')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+    if (updateError) {
+      return NextResponse.json(
+        { error: 'Database Error', message: updateError.message },
+        { status: 500 }
+      );
+    }
+    return NextResponse.json({ data: updated, message: 'Spot updated.' });
+  } catch {
+    return NextResponse.json(
+      { error: 'Server Error', message: 'Something went wrong.' },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE: Delete a spot (only if user is owner)
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized', message: 'You must be logged in to delete a spot.' },
+        { status: 401 }
+      );
+    }
+    const body = await request.json();
+    const { id } = body;
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Validation Error', message: 'Spot ID is required.' },
+        { status: 400 }
+      );
+    }
+    // Check ownership
+    const { data: spot, error: fetchError } = await supabase
+      .from('spots')
+      .select('user_id')
+      .eq('id', id)
+      .single();
+    if (fetchError || !spot) {
+      return NextResponse.json({ error: 'Not Found', message: 'Spot not found.' }, { status: 404 });
+    }
+    if (spot.user_id !== user.id) {
+      return NextResponse.json(
+        { error: 'Forbidden', message: 'You can only delete your own spots.' },
+        { status: 403 }
+      );
+    }
+    // Delete spot
+    const { error: deleteError } = await supabase.from('spots').delete().eq('id', id);
+    if (deleteError) {
+      return NextResponse.json(
+        { error: 'Database Error', message: deleteError.message },
+        { status: 500 }
+      );
+    }
+    return NextResponse.json({ message: 'Spot deleted.' });
+  } catch {
+    return NextResponse.json(
+      { error: 'Server Error', message: 'Something went wrong.' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
