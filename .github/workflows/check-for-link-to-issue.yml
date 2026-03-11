@@ -27,13 +27,12 @@ jobs:
 
       - name: Check if PR has an associated issue and close keyword
         id: check-issue
-        env:
-          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
-          PR_BODY='${{ github.event.pull_request.body }}'
+          # Read PR body safely from the event payload JSON (avoids shell injection from special characters)
+          PR_BODY=$(jq -r '.pull_request.body // ""' "$GITHUB_EVENT_PATH")
 
           # Extract the first issue number from the PR body (e.g., #123)
-          ISSUE_NUMBER=$(printf '%s' "$PR_BODY" | grep -Eo '#[0-9]+' | head -n 1 | tr -d '#')
+          ISSUE_NUMBER=$(printf '%s' "$PR_BODY" | grep -oE '#[0-9]+' | head -n 1 | tr -d '#')
 
           # Check if a linked issue is found
           if [ -z "$ISSUE_NUMBER" ]; then
@@ -41,10 +40,10 @@ jobs:
             exit 1
           fi
 
-          # Check if PR contains an approved close keyword for the extracted issue
-          if ! printf '%s' "$PR_BODY" | grep -Eiq "(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)[[:space:]]+#${ISSUE_NUMBER}"; then
+          # Check if the PR description contains one of the approved close keywords
+          if printf '%s' "$PR_BODY" | grep -Eiq '(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s+#'"${ISSUE_NUMBER}"; then
+            echo "Linked issue #$ISSUE_NUMBER found and flagged to be closed."
+          else
             echo "PR does not contain a valid close keyword for the linked issue (e.g., 'closes #$ISSUE_NUMBER')."
             exit 1
-          else
-            echo "Linked issue #$ISSUE_NUMBER found and flagged to be closed."
           fi
