@@ -33,6 +33,7 @@ export default function Map() {
   const [spots, setSpots] = useState<Spot[]>([]);
   const [pendingPosition, setPendingPosition] = useState<[number, number] | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<'user' | 'admin' | null>(null);
   const [editingSpot, setEditingSpot] = useState<Spot | null>(null);
   const [deleteSpot, setDeleteSpot] = useState<Spot | null>(null);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
@@ -51,21 +52,42 @@ export default function Map() {
       }
     }
     loadSpots();
-    // Fetch user ID
-    async function fetchUserId() {
+    // Fetch user ID and role
+    async function fetchUserProfile() {
       try {
         const {
           data: { user },
         } = await supabase.auth.getUser();
         setUserId(user?.id ?? null);
+        if (user?.id) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+          setUserRole(profile?.role ?? null);
+        } else {
+          setUserRole(null);
+        }
       } catch {
         setUserId(null);
+        setUserRole(null);
       }
     }
-    fetchUserId();
+    fetchUserProfile();
     // Listen for auth state changes
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUserId(session?.user?.id ?? null);
+      if (session?.user?.id) {
+        supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single()
+          .then(({ data: profile }) => setUserRole(profile?.role ?? null));
+      } else {
+        setUserRole(null);
+      }
     });
     return () => {
       authListener?.subscription?.unsubscribe();
@@ -99,7 +121,9 @@ export default function Map() {
   }
 
   function handleDeleteSpot(spot: Spot) {
-    if (!userId || spot.user_id !== userId) return;
+    if (!userId) return;
+    // Allow if owner or admin
+    if (spot.user_id !== userId && userRole !== 'admin') return;
     setDeleteSpot(spot);
     setShowDeletePopup(true);
   }
@@ -193,7 +217,7 @@ export default function Map() {
                   </span>
                 </div>
                 {spot.address && <p className="text-[10px] text-gray-400">{spot.address}</p>}
-                {userId && spot.user_id === userId && (
+                {userId && (spot.user_id === userId || userRole === 'admin') && (
                   <div className="flex gap-2 mt-2">
                     <button
                       className="rounded bg-yellow-500 px-2 py-1 text-xs text-white hover:bg-yellow-600"
@@ -203,7 +227,7 @@ export default function Map() {
                     </button>
                     <button
                       className="rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600"
-                      onClick={() => setDeleteSpot(spot)}
+                      onClick={() => handleDeleteSpot(spot)}
                     >
                       Delete
                     </button>
