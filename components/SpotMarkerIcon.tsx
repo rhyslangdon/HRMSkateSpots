@@ -1,5 +1,6 @@
 // SpotMarkerIcon.tsx
 // Returns a Material Symbol icon name for a given spot type/feature
+import L from 'leaflet';
 
 export function getSpotIconName(spot: { spot_type: string; street_feature?: string | null }) {
   switch (spot.spot_type) {
