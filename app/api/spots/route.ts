@@ -49,7 +49,7 @@ export async function PATCH(request: NextRequest) {
         { status: 400 }
       );
     }
-    // Check ownership
+    // Check ownership or admin
     const { data: spot, error: fetchError } = await supabase
       .from('spots')
       .select('user_id')
@@ -58,9 +58,24 @@ export async function PATCH(request: NextRequest) {
     if (fetchError || !spot) {
       return NextResponse.json({ error: 'Not Found', message: 'Spot not found.' }, { status: 404 });
     }
-    if (spot.user_id !== user.id) {
+    // Fetch user profile to check role
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+    if (profileError || !profile) {
       return NextResponse.json(
-        { error: 'Forbidden', message: 'You can only edit your own spots.' },
+        { error: 'Forbidden', message: 'User profile not found.' },
+        { status: 403 }
+      );
+    }
+    if (spot.user_id !== user.id && profile.role !== 'admin') {
+      return NextResponse.json(
+        {
+          error: 'Forbidden',
+          message: 'You can only edit your own spots unless you are an admin.',
+        },
         { status: 403 }
       );
     }
@@ -107,7 +122,7 @@ export async function DELETE(request: NextRequest) {
         { status: 400 }
       );
     }
-    // Check ownership
+    // Check ownership or admin
     const { data: spot, error: fetchError } = await supabase
       .from('spots')
       .select('user_id')
@@ -116,9 +131,24 @@ export async function DELETE(request: NextRequest) {
     if (fetchError || !spot) {
       return NextResponse.json({ error: 'Not Found', message: 'Spot not found.' }, { status: 404 });
     }
-    if (spot.user_id !== user.id) {
+    // Fetch user profile to check role
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+    if (profileError || !profile) {
       return NextResponse.json(
-        { error: 'Forbidden', message: 'You can only delete your own spots.' },
+        { error: 'Forbidden', message: 'User profile not found.' },
+        { status: 403 }
+      );
+    }
+    if (spot.user_id !== user.id && profile.role !== 'admin') {
+      return NextResponse.json(
+        {
+          error: 'Forbidden',
+          message: 'You can only delete your own spots unless you are an admin.',
+        },
         { status: 403 }
       );
     }
