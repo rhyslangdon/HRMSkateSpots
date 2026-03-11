@@ -1,17 +1,25 @@
 // =============================================================================
-// NAVBAR COMPONENT
+// NAVBAR COMPONENT — Client Component
 // =============================================================================
 // The main navigation bar displayed at the top of every page.
 //
-// STUDENT: Update this component with your app's branding and navigation:
-//   - Replace the placeholder logo with your own
-//   - Update navigation links to match your routes
-//   - Style to match your design system
-//   - The mobile menu uses a checkbox hack — no JavaScript required!
-//     (You may replace this with a React state-based menu if you prefer)
+// AUTH-AWARE BEHAVIOUR:
+//   - Tracks `isLoggedIn` via Supabase auth state listener.
+//   - Tracks `isAdmin` by querying the `profiles` table for the user's
+//     `role` column whenever auth state changes.
+//   - Shows/hides links accordingly:
+//       • Logged-out users  → Log in / Sign up
+//       • Logged-in users   → Dashboard, Profile, Log out
+//       • Admin users only  → "Admin" link (to /admin/dashboard)
 //
-// This is a Client Component because it uses interactive state for the
-// mobile menu. See /docs/performance.md for Server vs Client Components.
+// RESPONSIVENESS:
+//   - Desktop nav (md+): horizontal link row, hidden on small screens.
+//   - Mobile nav (<md):  hamburger button toggles a slide-down menu.
+//   Both menus conditionally render the Admin link based on `isAdmin`.
+//
+// NOTE: The Admin link visibility is a UI convenience only.
+// Actual access control is enforced server-side in the middleware and
+// in the admin dashboard page itself via `requireAdmin()`.
 // =============================================================================
 
 'use client';
@@ -26,14 +34,31 @@ export default function Navbar() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
 
+    // Query the profiles table to determine if the user has admin privileges.
+    // Called on mount and whenever auth state changes (login/logout/refresh).
+    async function checkAdminRole(userId: string) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+      setIsAdmin(profile?.role === 'admin');
+    }
+
     // Check initial auth state
     supabase.auth.getUser().then(({ data: { user } }) => {
       setIsLoggedIn(!!user);
+      if (user) {
+        checkAdminRole(user.id);
+      } else {
+        setIsAdmin(false);
+      }
     });
 
     // Listen for auth changes (login, logout, token refresh)
@@ -41,6 +66,11 @@ export default function Navbar() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsLoggedIn(!!session?.user);
+      if (session?.user) {
+        checkAdminRole(session.user.id);
+      } else {
+        setIsAdmin(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -51,6 +81,7 @@ export default function Navbar() {
     const supabase = createClient();
     await supabase.auth.signOut();
     setIsLoggedIn(false);
+    setIsAdmin(false);
     router.push('/');
     router.refresh();
     setLoggingOut(false);
@@ -103,6 +134,14 @@ export default function Navbar() {
                 >
                   Dashboard
                 </Link>
+                {isAdmin && (
+                  <Link
+                    href="/admin/dashboard"
+                    className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    Admin
+                  </Link>
+                )}
                 <Link
                   href="/profile"
                   className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -216,6 +255,15 @@ export default function Navbar() {
                   >
                     Dashboard
                   </Link>
+                  {isAdmin && (
+                    <Link
+                      href="/admin/dashboard"
+                      className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Admin
+                    </Link>
+                  )}
                   <Link
                     href="/profile"
                     className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"

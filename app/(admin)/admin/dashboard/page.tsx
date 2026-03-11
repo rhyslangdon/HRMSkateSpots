@@ -1,48 +1,87 @@
 // =============================================================================
-// ADMIN DASHBOARD
+// ADMIN DASHBOARD — Server Component
 // =============================================================================
-// ⚠️  WARNING: This page is currently COMPLETELY UNPROTECTED.
+// Protected admin-only page that displays platform analytics and user data.
 //
-// ANY user can access /admin/dashboard right now. This is intentional in the
-// starter template — your team MUST implement proper access control.
+// ACCESS CONTROL (two layers):
+//   1. Middleware (/lib/supabase/middleware.ts) — redirects non-admin users
+//      to "/" before this page is ever rendered.
+//   2. `requireAdmin()` — called at the top of this component as a
+//      second server-side check. Redirects to "/" if not admin.
 //
-// STUDENT: Before going to production, you MUST:
-//   1. Implement authentication (login/signup flow)
-//   2. Add a "role" field to your user model (e.g., 'user' | 'admin')
-//   3. Protect this route using middleware.ts (see the stub in the root)
-//   4. Verify the user's role in your Server Components and API routes
-//   5. Only users with an admin role should EVER reach this page
+// DATA:
+//   Fetches all rows from the `profiles` table to compute stats and
+//   populate the user tables. The query uses the Supabase server client
+//   which respects RLS policies (profiles are publicly readable).
 //
-// Client-side checks alone are NOT sufficient for security.
-// A malicious user can bypass any client-side protection.
-// Always verify roles server-side.
+// SECTIONS:
+//   - Stat cards: total users, premium count, recent signups, free count
+//   - Premium users table: filtered list of subscription_status='premium'
+//   - All users table: every profile with role & plan badges
 //
-// See:
-//   - /docs/admin-guide.md for detailed RBAC implementation guidance
-//   - middleware.ts for the middleware stub
-//   - /docs/ai-usage-policy.md for responsible development practices
+// See /docs/admin-guide.md for RBAC implementation details.
 // =============================================================================
 
 import type { Metadata } from 'next';
+import { requireAdmin } from '@/lib/supabase/admin';
+import { createClient } from '@/lib/supabase/server';
+import type { Profile } from '@/types';
 
 export const metadata: Metadata = {
   title: 'Admin Dashboard',
   description: 'Admin-only dashboard for managing the application.',
 };
 
-export default function AdminDashboardPage() {
+export default async function AdminDashboardPage() {
+  // Server-side admin guard — redirects non-admin users to "/"
+  await requireAdmin();
+
+  const supabase = await createClient();
+
+  // --- Compute summary statistics for the stat cards using aggregate/count queries ---
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  // Total users
+  const { count: totalUsers = 0 } = await supabase
+    .from('profiles')
+    .select('id', { count: 'exact', head: true });
+
+  // Total premium users
+  const { count: premiumCount = 0 } = await supabase
+    .from('profiles')
+    .select('id', { count: 'exact', head: true })
+    .eq('subscription_status', 'premium');
+
+  // Users created within the last 7 days
+  const { count: newThisWeek = 0 } = await supabase
+    .from('profiles')
+    .select('id', { count: 'exact', head: true })
+    .gte('created_at', oneWeekAgo.toISOString());
+
+  // Users created within the last 30 days
+  const { count: recentSignups = 0 } = await supabase
+    .from('profiles')
+    .select('id', { count: 'exact', head: true })
+    .gte('created_at', thirtyDaysAgo.toISOString());
+
+  // --- Fetch a limited set of users for the overview tables ---
+  // Ordered newest-first so the most recent signups appear at the top.
+  // NOTE: We only fetch the most recent 100 users to keep this page fast.
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, email, display_name, role, subscription_status, created_at')
+    .order('created_at', { ascending: false })
+    .limit(100);
+
+  const users: Profile[] = profiles ?? [];
+  const premiumUsers = users.filter((u) => u.subscription_status === 'premium');
   return (
     <div className="px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        {/* --- Warning Banner --- */}
-        <div className="mb-8 rounded-lg border border-yellow-300 bg-yellow-50 p-4">
-          <p className="text-sm font-medium text-yellow-800">
-            ⚠️ <strong>Unprotected Route:</strong> This admin dashboard is currently accessible to
-            everyone. Implement authentication and RBAC before deploying. See{' '}
-            <code className="rounded bg-yellow-100 px-1">/docs/admin-guide.md</code> for guidance.
-          </p>
-        </div>
-
         {/* --- Header --- */}
         <div>
           <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
@@ -50,108 +89,151 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* --- Stat Cards --- */}
-        {/* STUDENT: Replace with real data from your database */}
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-xl border border-border bg-background p-6">
             <p className="text-sm font-medium text-muted-foreground">Total Users</p>
-            <p className="mt-2 text-3xl font-bold text-foreground">0</p>
-            <p className="mt-1 text-xs text-muted-foreground">+0 this week</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">{totalUsers}</p>
+            <p className="mt-1 text-xs text-muted-foreground">+{newThisWeek} this week</p>
           </div>
           <div className="rounded-xl border border-border bg-background p-6">
-            <p className="text-sm font-medium text-muted-foreground">Active Sessions</p>
-            <p className="mt-2 text-3xl font-bold text-foreground">0</p>
-            <p className="mt-1 text-xs text-muted-foreground">Currently online</p>
+            <p className="text-sm font-medium text-muted-foreground">Premium Users</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">{premiumCount}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Active premium subscriptions</p>
           </div>
           <div className="rounded-xl border border-border bg-background p-6">
             <p className="text-sm font-medium text-muted-foreground">Recent Signups</p>
-            <p className="mt-2 text-3xl font-bold text-foreground">0</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">{recentSignups}</p>
             <p className="mt-1 text-xs text-muted-foreground">Last 30 days</p>
           </div>
           <div className="rounded-xl border border-border bg-background p-6">
-            <p className="text-sm font-medium text-muted-foreground">Revenue</p>
-            <p className="mt-2 text-3xl font-bold text-foreground">$0</p>
-            <p className="mt-1 text-xs text-muted-foreground">This month</p>
+            <p className="text-sm font-medium text-muted-foreground">Free Users</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">{totalUsers - premiumCount}</p>
+            <p className="mt-1 text-xs text-muted-foreground">On free plan</p>
           </div>
         </div>
 
-        {/* --- Recent Activity Feed --- */}
-        {/* STUDENT: Replace with real activity data */}
+        {/* --- Premium Users --- */}
         <div className="mt-8 rounded-xl border border-border bg-background p-6">
-          <h2 className="text-xl font-semibold text-foreground">Recent Activity</h2>
-          <div className="mt-4 space-y-4">
-            <div className="flex items-center gap-4 rounded-lg bg-muted/50 p-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm">
-                👤
-              </div>
-              <div>
-                <p className="text-sm font-medium text-foreground">[Placeholder activity]</p>
-                <p className="text-xs text-muted-foreground">Just now</p>
-              </div>
+          <h2 className="text-xl font-semibold text-foreground">Premium Users</h2>
+          {premiumUsers.length === 0 ? (
+            <p className="mt-4 text-sm text-muted-foreground">No premium users yet.</p>
+          ) : (
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="whitespace-nowrap pb-3 pr-4 font-medium text-muted-foreground">
+                      Name
+                    </th>
+                    <th className="whitespace-nowrap pb-3 pr-4 font-medium text-muted-foreground">
+                      Email
+                    </th>
+                    <th className="whitespace-nowrap pb-3 pr-4 font-medium text-muted-foreground">
+                      Role
+                    </th>
+                    <th className="whitespace-nowrap pb-3 font-medium text-muted-foreground">
+                      Joined
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {premiumUsers.map((user) => (
+                    <tr key={user.id} className="border-b border-border last:border-0">
+                      <td className="whitespace-nowrap py-3 pr-4 text-foreground">
+                        {user.display_name || '—'}
+                      </td>
+                      <td className="whitespace-nowrap py-3 pr-4 text-muted-foreground">
+                        {user.email}
+                      </td>
+                      <td className="whitespace-nowrap py-3 pr-4">
+                        <span
+                          className={`rounded-full px-2 py-1 text-xs font-medium ${
+                            user.role === 'admin'
+                              ? 'bg-primary/10 text-primary'
+                              : 'bg-muted text-muted-foreground'
+                          }`}
+                        >
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="whitespace-nowrap py-3 text-muted-foreground">
+                        {new Date(user.created_at).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <div className="flex items-center gap-4 rounded-lg bg-muted/50 p-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm">
-                ✉️
-              </div>
-              <div>
-                <p className="text-sm font-medium text-foreground">[Placeholder activity]</p>
-                <p className="text-xs text-muted-foreground">5 minutes ago</p>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* --- Data Table Shell --- */}
-        {/* STUDENT: Replace with real user data from your database */}
+        {/* --- All Users Table --- */}
         <div className="mt-8 rounded-xl border border-border bg-background p-6">
-          <h2 className="text-xl font-semibold text-foreground">Users</h2>
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="pb-3 font-medium text-muted-foreground">Name</th>
-                  <th className="pb-3 font-medium text-muted-foreground">Email</th>
-                  <th className="pb-3 font-medium text-muted-foreground">Role</th>
-                  <th className="pb-3 font-medium text-muted-foreground">Plan</th>
-                  <th className="pb-3 font-medium text-muted-foreground">Joined</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b border-border">
-                  <td className="py-3 text-foreground">[User Name]</td>
-                  <td className="py-3 text-muted-foreground">[user@example.com]</td>
-                  <td className="py-3">
-                    <span className="rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
-                      admin
-                    </span>
-                  </td>
-                  <td className="py-3 text-muted-foreground">Pro</td>
-                  <td className="py-3 text-muted-foreground">[Date]</td>
-                </tr>
-                <tr className="border-b border-border">
-                  <td className="py-3 text-foreground">[User Name]</td>
-                  <td className="py-3 text-muted-foreground">[user2@example.com]</td>
-                  <td className="py-3">
-                    <span className="rounded-full bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                      user
-                    </span>
-                  </td>
-                  <td className="py-3 text-muted-foreground">Free</td>
-                  <td className="py-3 text-muted-foreground">[Date]</td>
-                </tr>
-                <tr>
-                  <td className="py-3 text-foreground">[User Name]</td>
-                  <td className="py-3 text-muted-foreground">[user3@example.com]</td>
-                  <td className="py-3">
-                    <span className="rounded-full bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                      user
-                    </span>
-                  </td>
-                  <td className="py-3 text-muted-foreground">Pro</td>
-                  <td className="py-3 text-muted-foreground">[Date]</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <h2 className="text-xl font-semibold text-foreground">All Users</h2>
+          {users.length === 0 ? (
+            <p className="mt-4 text-sm text-muted-foreground">No users found.</p>
+          ) : (
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="whitespace-nowrap pb-3 pr-4 font-medium text-muted-foreground">
+                      Name
+                    </th>
+                    <th className="whitespace-nowrap pb-3 pr-4 font-medium text-muted-foreground">
+                      Email
+                    </th>
+                    <th className="whitespace-nowrap pb-3 pr-4 font-medium text-muted-foreground">
+                      Role
+                    </th>
+                    <th className="whitespace-nowrap pb-3 pr-4 font-medium text-muted-foreground">
+                      Plan
+                    </th>
+                    <th className="whitespace-nowrap pb-3 font-medium text-muted-foreground">
+                      Joined
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((user) => (
+                    <tr key={user.id} className="border-b border-border last:border-0">
+                      <td className="whitespace-nowrap py-3 pr-4 text-foreground">
+                        {user.display_name || '—'}
+                      </td>
+                      <td className="whitespace-nowrap py-3 pr-4 text-muted-foreground">
+                        {user.email}
+                      </td>
+                      <td className="whitespace-nowrap py-3 pr-4">
+                        <span
+                          className={`rounded-full px-2 py-1 text-xs font-medium ${
+                            user.role === 'admin'
+                              ? 'bg-primary/10 text-primary'
+                              : 'bg-muted text-muted-foreground'
+                          }`}
+                        >
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="whitespace-nowrap py-3 pr-4">
+                        <span
+                          className={`rounded-full px-2 py-1 text-xs font-medium ${
+                            user.subscription_status === 'premium'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-muted text-muted-foreground'
+                          }`}
+                        >
+                          {user.subscription_status}
+                        </span>
+                      </td>
+                      <td className="whitespace-nowrap py-3 text-muted-foreground">
+                        {new Date(user.created_at).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>
