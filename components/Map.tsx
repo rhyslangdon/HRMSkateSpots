@@ -2,7 +2,7 @@ import { getSpotIconName, createSpotDivIcon } from './SpotMarkerIcon';
 ('use client');
 
 import { useCallback, useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, LayersControl } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import SpotForm from '@/components/SpotForm';
@@ -172,10 +172,32 @@ export default function Map() {
         scrollWheelZoom={true}
         className="h-full w-full rounded-xl"
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        <LayersControl position="topright">
+          <LayersControl.BaseLayer checked name="Simple">
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &amp; <a href="https://carto.com/">CARTO</a>'
+              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            />
+          </LayersControl.BaseLayer>
+          <LayersControl.BaseLayer name="Standard">
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+          </LayersControl.BaseLayer>
+          <LayersControl.BaseLayer name="Minimal">
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &amp; <a href="https://carto.com/">CARTO</a>'
+              url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+            />
+          </LayersControl.BaseLayer>
+          <LayersControl.BaseLayer name="Dark">
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &amp; <a href="https://carto.com/">CARTO</a>'
+              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            />
+          </LayersControl.BaseLayer>
+        </LayersControl>
         <ClickHandler onMapClick={handleMapClick} />
         {pendingPosition && (
           <Marker position={pendingPosition} ref={pendingMarkerRef}>
@@ -258,79 +280,6 @@ export default function Map() {
                         Cancel
                       </button>
                     </div>
-                  </div>
-                )}
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
-      <MapContainer
-        center={HRM_CENTER}
-        zoom={DEFAULT_ZOOM}
-        scrollWheelZoom={true}
-        className="h-full w-full rounded-xl"
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <ClickHandler onMapClick={handleMapClick} />
-        {pendingPosition && (
-          <Marker position={pendingPosition} ref={pendingMarkerRef}>
-            <Popup eventHandlers={{ remove: handleCancelPin }} minWidth={240} maxWidth={300}>
-              <SpotForm
-                latitude={pendingPosition[0]}
-                longitude={pendingPosition[1]}
-                onSaved={handleSpotSaved}
-                onCancel={handleCancelPin}
-                {...(editingSpot ? { initialData: editingSpot } : {})}
-              />
-            </Popup>
-          </Marker>
-        )}
-        {spots.map((spot) => (
-          <Marker key={spot.id} position={[spot.latitude, spot.longitude]}>
-            <Popup minWidth={220} maxWidth={280}>
-              <div className="flex flex-col gap-2">
-                {spot.image_url && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={spot.image_url}
-                    alt={spot.name}
-                    className="h-32 w-full rounded object-cover"
-                  />
-                )}
-                <p className="text-sm font-semibold">{spot.name}</p>
-                {spot.description && <p className="text-xs text-gray-600">{spot.description}</p>}
-                <div className="flex flex-wrap gap-1">
-                  <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700">
-                    {spot.spot_type}
-                  </span>
-                  {spot.street_feature && (
-                    <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-medium text-purple-700">
-                      {spot.street_feature}
-                    </span>
-                  )}
-                  <span className="rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-medium text-green-700">
-                    {spot.difficulty}
-                  </span>
-                </div>
-                {spot.address && <p className="text-[10px] text-gray-400">{spot.address}</p>}
-                {userId && spot.user_id === userId && (
-                  <div className="flex gap-2 mt-2">
-                    <button
-                      className="rounded bg-yellow-500 px-2 py-1 text-xs text-white hover:bg-yellow-600"
-                      onClick={() => handleEditSpot(spot)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600"
-                      onClick={() => handleDeleteSpot(spot)}
-                    >
-                      Delete
-                    </button>
                   </div>
                 )}
               </div>
