@@ -1,4 +1,5 @@
-'use client';
+import { getSpotIconName, createSpotDivIcon } from './SpotMarkerIcon';
+('use client');
 
 import { useCallback, useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
@@ -190,7 +191,11 @@ export default function Map() {
           </Marker>
         )}
         {spots.map((spot) => (
-          <Marker key={spot.id} position={[spot.latitude, spot.longitude]}>
+          <Marker
+            key={spot.id}
+            position={[spot.latitude, spot.longitude]}
+            icon={createSpotDivIcon(getSpotIconName(spot))}
+          >
             <Popup minWidth={220} maxWidth={280}>
               <div className="flex flex-col gap-2">
                 {spot.image_url && (
