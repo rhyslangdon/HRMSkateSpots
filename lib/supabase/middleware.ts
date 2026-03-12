@@ -83,6 +83,7 @@ export async function updateSession(request: NextRequest) {
     if (profile?.role !== 'admin') {
       const url = request.nextUrl.clone();
       url.pathname = '/';
+      url.searchParams.set('unauthorized_access', request.nextUrl.pathname);
       return NextResponse.redirect(url);
     }
   }
