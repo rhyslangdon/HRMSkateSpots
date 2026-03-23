@@ -8,10 +8,11 @@ import 'leaflet/dist/leaflet.css';
 import SpotForm from '@/components/SpotForm';
 import MapLegend from '@/components/MapLegend';
 import { createClient } from '@/lib/supabase/client';
-import type { Spot, SpotType, StreetFeature } from '@/types';
+import type { Spot, SpotType, StreetFeature, Difficulty } from '@/types';
 
 const SPOT_TYPES: SpotType[] = ['street', 'park', 'diy', 'transition', 'flatground', 'other'];
 const STREET_FEATURES: StreetFeature[] = ['ledge', 'stairs', 'handrail', 'gap', 'bank', 'other'];
+const DIFFICULTIES: Difficulty[] = ['beginner', 'intermediate', 'advanced', 'all'];
 
 // Fix default marker icon paths (broken by webpack bundling)
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -44,6 +45,7 @@ export default function Map() {
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [hiddenTypes, setHiddenTypes] = useState<Set<SpotType>>(new Set());
   const [hiddenFeatures, setHiddenFeatures] = useState<Set<StreetFeature>>(new Set());
+  const [hiddenDifficulties, setHiddenDifficulties] = useState<Set<Difficulty>>(new Set());
 
   function handleToggleType(type: SpotType) {
     setHiddenTypes((prev) => {
@@ -63,20 +65,32 @@ export default function Map() {
     });
   }
 
+  function handleToggleDifficulty(difficulty: Difficulty) {
+    setHiddenDifficulties((prev) => {
+      const next = new Set(prev);
+      if (next.has(difficulty)) next.delete(difficulty);
+      else next.add(difficulty);
+      return next;
+    });
+  }
+
   function handleReset() {
     setHiddenTypes(new Set());
     setHiddenFeatures(new Set());
+    setHiddenDifficulties(new Set());
   }
 
   function handleHideAll() {
     setHiddenTypes(new Set(SPOT_TYPES));
     setHiddenFeatures(new Set(STREET_FEATURES));
+    setHiddenDifficulties(new Set(DIFFICULTIES));
   }
 
   const visibleSpots = spots.filter((s) => {
     if (hiddenTypes.has(s.spot_type)) return false;
     if (s.spot_type === 'street' && s.street_feature && hiddenFeatures.has(s.street_feature))
       return false;
+    if (hiddenDifficulties.has(s.difficulty)) return false;
     return true;
   });
 
@@ -211,6 +225,8 @@ export default function Map() {
         onToggleType={handleToggleType}
         hiddenFeatures={hiddenFeatures}
         onToggleFeature={handleToggleFeature}
+        hiddenDifficulties={hiddenDifficulties}
+        onToggleDifficulty={handleToggleDifficulty}
         onReset={handleReset}
         onHideAll={handleHideAll}
       />

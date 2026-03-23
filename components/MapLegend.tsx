@@ -1,10 +1,11 @@
 'use client';
 
-import type { SpotType, StreetFeature } from '@/types';
+import type { SpotType, StreetFeature, Difficulty } from '@/types';
 import { getSpotIconName } from './SpotMarkerIcon';
 
 const SPOT_TYPES: SpotType[] = ['street', 'park', 'diy', 'transition', 'flatground', 'other'];
 const STREET_FEATURES: StreetFeature[] = ['ledge', 'stairs', 'handrail', 'gap', 'bank', 'other'];
+const DIFFICULTIES: Difficulty[] = ['beginner', 'intermediate', 'advanced', 'all'];
 const ICON_COLOR = '#1976d2';
 
 function formatLabel(value: string): string {
@@ -16,6 +17,8 @@ interface MapLegendProps {
   onToggleType: (type: SpotType) => void;
   hiddenFeatures: Set<StreetFeature>;
   onToggleFeature: (feature: StreetFeature) => void;
+  hiddenDifficulties: Set<Difficulty>;
+  onToggleDifficulty: (difficulty: Difficulty) => void;
   onReset: () => void;
   onHideAll: () => void;
 }
@@ -25,12 +28,16 @@ export default function MapLegend({
   onToggleType,
   hiddenFeatures,
   onToggleFeature,
+  hiddenDifficulties,
+  onToggleDifficulty,
   onReset,
   onHideAll,
 }: MapLegendProps) {
   const streetHidden = hiddenTypes.has('street');
-  const hasActiveFilters = hiddenTypes.size > 0 || hiddenFeatures.size > 0;
-  const allHidden = hiddenTypes.size === SPOT_TYPES.length;
+  const hasActiveFilters =
+    hiddenTypes.size > 0 || hiddenFeatures.size > 0 || hiddenDifficulties.size > 0;
+  const allHidden =
+    hiddenTypes.size === SPOT_TYPES.length && hiddenDifficulties.size === DIFFICULTIES.length;
 
   return (
     <div className="rounded-lg border border-border bg-white/95 p-3 shadow-sm">
@@ -115,6 +122,30 @@ export default function MapLegend({
           </div>
         </div>
       )}
+
+      {/* Difficulty filter */}
+      <div className="mt-2 border-t border-gray-100 pt-2">
+        <p className="mb-1.5 text-[10px] font-semibold text-gray-500">Difficulty</p>
+        <div className="flex flex-wrap gap-1">
+          {DIFFICULTIES.map((difficulty) => {
+            const isHidden = hiddenDifficulties.has(difficulty);
+            return (
+              <button
+                key={difficulty}
+                type="button"
+                onClick={() => onToggleDifficulty(difficulty)}
+                className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-all hover:ring-1 hover:ring-green-300 ${
+                  isHidden ? 'bg-gray-100 text-gray-400 opacity-50' : 'bg-green-100 text-green-700'
+                }`}
+                aria-pressed={!isHidden}
+                aria-label={`${isHidden ? 'Show' : 'Hide'} ${formatLabel(difficulty)} spots`}
+              >
+                {formatLabel(difficulty)}
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
