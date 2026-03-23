@@ -6,8 +6,9 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents, LayersControl } f
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import SpotForm from '@/components/SpotForm';
+import MapLegend from '@/components/MapLegend';
 import { createClient } from '@/lib/supabase/client';
-import type { Spot } from '@/types';
+import type { Spot, SpotType } from '@/types';
 
 // Fix default marker icon paths (broken by webpack bundling)
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -38,6 +39,18 @@ export default function Map() {
   const [editingSpot, setEditingSpot] = useState<Spot | null>(null);
   const [deleteSpot, setDeleteSpot] = useState<Spot | null>(null);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [hiddenTypes, setHiddenTypes] = useState<Set<SpotType>>(new Set());
+
+  function handleToggleType(type: SpotType) {
+    setHiddenTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(type)) next.delete(type);
+      else next.add(type);
+      return next;
+    });
+  }
+
+  const visibleSpots = spots.filter((s) => !hiddenTypes.has(s.spot_type));
 
   useEffect(() => {
     const supabase = createClient();
@@ -164,8 +177,8 @@ export default function Map() {
   }, []);
 
   return (
-    <>
-      {/* ...existing code up to spots.map... */}
+    <div className="relative h-full w-full">
+      <MapLegend hiddenTypes={hiddenTypes} onToggleType={handleToggleType} />
       <MapContainer
         center={HRM_CENTER}
         zoom={DEFAULT_ZOOM}
@@ -212,7 +225,7 @@ export default function Map() {
             </Popup>
           </Marker>
         )}
-        {spots.map((spot) => (
+        {visibleSpots.map((spot) => (
           <Marker
             key={spot.id}
             position={[spot.latitude, spot.longitude]}
@@ -287,6 +300,6 @@ export default function Map() {
           </Marker>
         ))}
       </MapContainer>
-    </>
+    </div>
   );
 }
