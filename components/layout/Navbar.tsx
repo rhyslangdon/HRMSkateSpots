@@ -25,6 +25,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSubscription } from '@/components/SubscriptionContext';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -35,40 +36,32 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isPro, setIsPro] = useState(false);
+  const { status: subscriptionStatus, refreshStatus } = useSubscription();
   const [userName, setUserName] = useState<string | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
 
-    // Query the profiles table to determine if the user has admin privileges.
-    // Called on mount and whenever auth state changes (login/logout/refresh).
-
     async function fetchProfile(userId: string) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('role, subscription_status, display_name, email')
+        .select('role, display_name, email')
         .eq('id', userId)
         .single();
       setIsAdmin(profile?.role === 'admin');
-      setIsPro(profile?.subscription_status === 'premium');
       setUserName(profile?.display_name || profile?.email || null);
     }
 
-    // Check initial auth state
     supabase.auth.getUser().then(({ data: { user } }) => {
       setIsLoggedIn(!!user);
       if (user) {
         fetchProfile(user.id);
       } else {
         setIsAdmin(false);
-        setIsPro(false);
         setUserName(null);
       }
     });
-
-    // Listen for auth changes (login, logout, token refresh)
 
     const {
       data: { subscription },
@@ -78,7 +71,6 @@ export default function Navbar() {
         fetchProfile(session.user.id);
       } else {
         setIsAdmin(false);
-        setIsPro(false);
         setUserName(null);
       }
     });
@@ -97,6 +89,7 @@ export default function Navbar() {
     setLoggingOut(false);
   };
 
+  const isPro = subscriptionStatus === 'premium';
   return (
     <nav className="sticky top-0 z-[9999] border-b border-border bg-background/95 backdrop-blur">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

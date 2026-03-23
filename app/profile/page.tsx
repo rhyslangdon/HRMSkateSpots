@@ -1,3 +1,4 @@
+'use client';
 // =============================================================================
 // PROFILE PAGE
 // =============================================================================
@@ -18,11 +19,113 @@
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { useSubscription } from '@/components/SubscriptionContext';
 
-export const metadata: Metadata = {
-  title: 'Profile',
-  description: 'Manage your account settings and profile.',
-};
+function SubscriptionSection() {
+  const { status, setStatus, refreshStatus } = useSubscription();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const handleRemovePremium = async () => {
+    setLoading(true);
+    setError('');
+    setSuccess(false);
+    try {
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not logged in');
+      const { error } = await supabase
+        .from('profiles')
+        .update({ subscription_status: 'free' })
+        .eq('id', user.id);
+      if (error) throw error;
+      setStatus('free');
+      setSuccess(true);
+      setShowConfirm(false);
+      await refreshStatus();
+    } catch (err: any) {
+      setError('Failed to remove premium.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (status === null) return <div className="mt-4">Loading subscription...</div>;
+
+  return (
+    <div className="mt-4">
+      <div className="flex items-center gap-3">
+        <span className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
+          {status === 'premium' ? 'Premium Plan' : 'Free Plan'}
+        </span>
+      </div>
+      <p className="mt-4 text-sm text-muted-foreground">
+        {status === 'premium'
+          ? 'You are currently on the Premium plan. Enjoy all features!'
+          : 'You are currently on the Free plan. Upgrade to unlock premium features.'}
+      </p>
+      {status === 'premium' ? (
+        <>
+          <button
+            onClick={() => setShowConfirm(true)}
+            className="mt-4 inline-block rounded-lg bg-red-600 text-white px-6 py-2 text-sm font-medium transition-colors hover:bg-red-700 disabled:opacity-60"
+            disabled={loading}
+          >
+            Remove Premium
+          </button>
+          {showConfirm && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+              <div className="bg-background border border-border rounded-xl shadow-xl p-8 max-w-sm w-full flex flex-col items-center">
+                <h3 className="text-lg font-semibold mb-2 text-center">
+                  Remove Premium Subscription?
+                </h3>
+                <p className="text-sm text-muted-foreground mb-6 text-center">
+                  Are you sure you want to remove your premium subscription and return to the free
+                  plan? This action is immediate.
+                </p>
+                <div className="flex gap-4 w-full justify-center">
+                  <button
+                    onClick={handleRemovePremium}
+                    className="rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-medium transition-colors hover:bg-red-700 disabled:opacity-60"
+                    disabled={loading}
+                  >
+                    {loading ? 'Removing...' : 'Yes, Remove'}
+                  </button>
+                  <button
+                    onClick={() => setShowConfirm(false)}
+                    className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                    disabled={loading}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <Link
+          href="/payment"
+          className="mt-4 inline-block rounded-lg bg-primary px-6 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+        >
+          Upgrade to Pro
+        </Link>
+      )}
+      {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
+      {success && (
+        <div className="text-green-600 text-sm mt-2">
+          Premium removed. You are now on the Free plan.
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ProfilePage() {
   return (
@@ -92,22 +195,7 @@ export default function ProfilePage() {
             See /docs/payments.md for implementing the freemium model. */}
         <section className="mt-8 rounded-xl border border-border bg-background p-6">
           <h2 className="text-xl font-semibold text-foreground">Subscription</h2>
-          <div className="mt-4">
-            <div className="flex items-center gap-3">
-              <span className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
-                Free Plan
-              </span>
-            </div>
-            <p className="mt-4 text-sm text-muted-foreground">
-              You are currently on the Free plan. Upgrade to unlock premium features.
-            </p>
-            <Link
-              href="/payment"
-              className="mt-4 inline-block rounded-lg bg-primary px-6 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              Upgrade to Pro
-            </Link>
-          </div>
+          <SubscriptionSection />
         </section>
       </div>
     </div>

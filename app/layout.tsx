@@ -25,6 +25,7 @@ import './globals.css';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import UnauthorizedToast from '@/components/UnauthorizedToast';
+import { SubscriptionProvider } from '@/components/SubscriptionContext';
 
 // --- Font Configuration ---
 // next/font automatically optimizes fonts — no external requests at runtime.
@@ -54,9 +55,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="font-sans antialiased">
-        <Navbar />
-        <main className="min-h-screen">{children}</main>
-        <Footer />
+        <SubscriptionProvider>
+          <Navbar />
+          <main className="min-h-screen">{children}</main>
+          <Footer />
+        </SubscriptionProvider>
         <Toaster position="bottom-right" richColors />
         <Suspense>
           <UnauthorizedToast />
