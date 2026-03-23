@@ -52,23 +52,6 @@ const tiers = [
     cta: 'Upgrade to Pro',
     highlighted: true,
   },
-  {
-    name: 'Enterprise',
-    price: '$49',
-    period: '/month',
-    description: 'For teams and organizations that need the full platform.',
-    features: [
-      'Everything in Pro',
-      '[Enterprise feature]',
-      '[Team management]',
-      '[Custom integrations]',
-      '[Dedicated support]',
-      '[SLA guarantee]',
-      '[Advanced analytics]',
-    ],
-    cta: 'Contact Sales',
-    highlighted: false,
-  },
 ];
 
 export default function PricingPage() {
@@ -86,11 +69,11 @@ export default function PricingPage() {
         </div>
 
         {/* --- Pricing Cards --- */}
-        <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-3">
+        <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2 md:justify-center md:items-start md:mx-auto md:max-w-3xl">
           {tiers.map((tier) => (
             <div
               key={tier.name}
-              className={`rounded-xl border p-8 ${
+              className={`rounded-xl border p-8 flex flex-col items-center h-full ${
                 tier.highlighted
                   ? 'border-primary bg-primary/5 shadow-lg'
                   : 'border-border bg-background'
@@ -133,7 +116,9 @@ export default function PricingPage() {
               {/* STUDENT: Wire this button to your payment processing.
                   See /docs/payments.md for Stripe integration guidance. */}
               <Link
-                href="/signup"
+                href={
+                  tier.name === 'Pro' ? '/payment' : tier.name === 'Free' ? '/signup' : '/contact'
+                }
                 className={`mt-8 block w-full rounded-lg px-4 py-3 text-center text-sm font-medium transition-colors ${
                   tier.highlighted
                     ? 'bg-primary text-primary-foreground hover:bg-primary/90'

@@ -102,7 +102,7 @@ export default function ProfilePage() {
               You are currently on the Free plan. Upgrade to unlock premium features.
             </p>
             <Link
-              href="/pricing"
+              href="/payment"
               className="mt-4 inline-block rounded-lg bg-primary px-6 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Upgrade to Pro
