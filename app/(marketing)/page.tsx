@@ -54,7 +54,7 @@ export default function HomePage() {
 
       {/* ===== MAP SECTION ===== */}
       <section className="px-4 pb-20 sm:px-6 lg:px-8">
-        <div className="mx-auto h-125 max-w-5xl overflow-hidden rounded-xl border border-border shadow-sm">
+        <div className="mx-auto max-w-5xl">
           <MapWrapper />
         </div>
       </section>
