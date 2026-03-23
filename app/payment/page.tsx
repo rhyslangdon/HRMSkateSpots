@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useSubscription } from '@/components/SubscriptionContext';
 
 export default function PaymentPage() {
   const [cardNumber, setCardNumber] = useState('');
@@ -13,6 +14,7 @@ export default function PaymentPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const { setStatus, refreshStatus } = useSubscription();
 
   // Format card number as 4242 4242 4242 4242
   function formatCardNumber(value: string) {
@@ -71,6 +73,8 @@ export default function PaymentPage() {
             return;
           }
           setSuccess(true);
+          setStatus('premium');
+          await refreshStatus();
         } catch (err) {
           setError('Unexpected error. Try again.');
         }
