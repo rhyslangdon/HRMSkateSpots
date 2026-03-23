@@ -35,6 +35,8 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isPro, setIsPro] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
@@ -42,34 +44,42 @@ export default function Navbar() {
 
     // Query the profiles table to determine if the user has admin privileges.
     // Called on mount and whenever auth state changes (login/logout/refresh).
-    async function checkAdminRole(userId: string) {
+
+    async function fetchProfile(userId: string) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, subscription_status, display_name, email')
         .eq('id', userId)
         .single();
       setIsAdmin(profile?.role === 'admin');
+      setIsPro(profile?.subscription_status === 'premium');
+      setUserName(profile?.display_name || profile?.email || null);
     }
 
     // Check initial auth state
     supabase.auth.getUser().then(({ data: { user } }) => {
       setIsLoggedIn(!!user);
       if (user) {
-        checkAdminRole(user.id);
+        fetchProfile(user.id);
       } else {
         setIsAdmin(false);
+        setIsPro(false);
+        setUserName(null);
       }
     });
 
     // Listen for auth changes (login, logout, token refresh)
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsLoggedIn(!!session?.user);
       if (session?.user) {
-        checkAdminRole(session.user.id);
+        fetchProfile(session.user.id);
       } else {
         setIsAdmin(false);
+        setIsPro(false);
+        setUserName(null);
       }
     });
 
@@ -154,9 +164,20 @@ export default function Navbar() {
                 )}
                 <Link
                   href="/profile"
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground flex items-center gap-2"
                 >
-                  Profile
+                  {userName ? (
+                    <>
+                      {userName}
+                      {isPro && (
+                        <span className="ml-1 rounded bg-yellow-400 px-2 py-0.5 text-xs font-bold text-black">
+                          PRO
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    'Profile'
+                  )}
                 </Link>
                 <button
                   type="button"
