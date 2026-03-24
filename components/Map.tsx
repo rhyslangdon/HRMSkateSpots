@@ -9,6 +9,7 @@ import SpotForm from '@/components/SpotForm';
 import MapLegend from '@/components/MapLegend';
 import { createClient } from '@/lib/supabase/client';
 import type { Spot, SpotType } from '@/types';
+import { useFavourites } from '@/hooks/useFavourites';
 
 // Fix default marker icon paths (broken by webpack bundling)
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -41,6 +42,10 @@ export default function Map() {
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [hiddenTypes, setHiddenTypes] = useState<Set<SpotType>>(new Set());
 
+  // Favourites logic
+  const { favourites, addFavourite, removeFavourite, isFavourite } = useFavourites(userId);
+  const [favError, setFavError] = useState<string | null>(null);
+
   function handleToggleType(type: SpotType) {
     setHiddenTypes((prev) => {
       const next = new Set(prev);
@@ -50,7 +55,13 @@ export default function Map() {
     });
   }
 
-  const visibleSpots = spots.filter((s) => !hiddenTypes.has(s.spot_type));
+  const [showFavouritesOnly, setShowFavouritesOnly] = useState(false);
+  const visibleSpots = spots.filter((s) => {
+    if (showFavouritesOnly && userId) {
+      return isFavourite(s.id);
+    }
+    return !hiddenTypes.has(s.spot_type);
+  });
 
   useEffect(() => {
     const supabase = createClient();
@@ -178,7 +189,19 @@ export default function Map() {
 
   return (
     <div className="relative h-full w-full">
-      <MapLegend hiddenTypes={hiddenTypes} onToggleType={handleToggleType} />
+      <div className="absolute bottom-4 left-4 z-[1000]">
+        <MapLegend hiddenTypes={hiddenTypes} onToggleType={handleToggleType} />
+      </div>
+      {userId && (
+        <div className="absolute right-4" style={{ bottom: '28px', zIndex: 1000 }}>
+          <button
+            className={`rounded px-4 py-2 text-xs font-semibold border border-blue-500 bg-white text-blue-700 hover:bg-blue-50 transition-colors ${showFavouritesOnly ? 'bg-blue-100 border-blue-700' : ''}`}
+            onClick={() => setShowFavouritesOnly((v) => !v)}
+          >
+            {showFavouritesOnly ? 'Show All Spots' : 'Show Favourites Only'}
+          </button>
+        </div>
+      )}
       <MapContainer
         center={HRM_CENTER}
         zoom={DEFAULT_ZOOM}
@@ -257,22 +280,55 @@ export default function Map() {
                   </span>
                 </div>
                 {spot.address && <p className="text-[10px] text-gray-400">{spot.address}</p>}
-                {userId && (spot.user_id === userId || userRole === 'admin') && (
-                  <div className="flex gap-2 mt-2">
-                    <button
-                      className="rounded bg-yellow-500 px-2 py-1 text-xs text-white hover:bg-yellow-600"
-                      onClick={() => handleEditSpot(spot)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600"
-                      onClick={() => handleDeleteSpot(spot)}
-                    >
-                      Delete
-                    </button>
-                  </div>
+                {/* Favourite button for all logged-in users */}
+                {userId && (
+                  <button
+                    className="ml-auto flex items-center gap-1 text-pink-600 hover:text-pink-700 focus:outline-none"
+                    aria-label={
+                      isFavourite(spot.id) ? 'Remove from favourites' : 'Add to favourites'
+                    }
+                    onClick={async () => {
+                      setFavError(null);
+                      if (isFavourite(spot.id)) {
+                        await removeFavourite(spot.id);
+                      } else {
+                        const { error } = await addFavourite(spot.id);
+                        if (error) {
+                          setFavError(error.message || 'Could not add favourite.');
+                        } else {
+                          setFavError(null);
+                        }
+                      }
+                    }}
+                  >
+                    {isFavourite(spot.id) ? (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                        className="h-5 w-5"
+                      >
+                        <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
+                      </svg>
+                    ) : (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 20 20"
+                        stroke="currentColor"
+                        className="h-5 w-5"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                        />
+                      </svg>
+                    )}
+                  </button>
                 )}
+                {favError && <div className="text-xs text-red-500 mt-1">{favError}</div>}
                 {deleteSpot && deleteSpot.id === spot.id && (
                   <div className="mt-2 p-2 rounded bg-white shadow flex flex-col items-center">
                     <p className="text-sm mb-4">
