@@ -1,6 +1,6 @@
-import { getSpotIconName, createSpotDivIcon } from './SpotMarkerIcon';
-('use client');
+'use client';
 
+import { getSpotIconName, createSpotDivIcon } from './SpotMarkerIcon';
 import { useCallback, useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, LayersControl } from 'react-leaflet';
 import L from 'leaflet';
