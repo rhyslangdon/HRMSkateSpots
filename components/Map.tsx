@@ -8,8 +8,12 @@ import 'leaflet/dist/leaflet.css';
 import SpotForm from '@/components/SpotForm';
 import MapLegend from '@/components/MapLegend';
 import { createClient } from '@/lib/supabase/client';
-import type { Spot, SpotType } from '@/types';
+import type { Spot, SpotType, StreetFeature, Difficulty } from '@/types';
 import { useFavourites } from '@/hooks/useFavourites';
+
+const SPOT_TYPES: SpotType[] = ['street', 'park', 'diy', 'transition', 'flatground', 'other'];
+const STREET_FEATURES: StreetFeature[] = ['ledge', 'stairs', 'handrail', 'gap', 'bank', 'other'];
+const DIFFICULTIES: Difficulty[] = ['beginner', 'intermediate', 'advanced', 'all'];
 
 // Fix default marker icon paths (broken by webpack bundling)
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -41,9 +45,12 @@ export default function Map() {
   const [deleteSpot, setDeleteSpot] = useState<Spot | null>(null);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [hiddenTypes, setHiddenTypes] = useState<Set<SpotType>>(new Set());
+  const [hiddenFeatures, setHiddenFeatures] = useState<Set<StreetFeature>>(new Set());
+  const [hiddenDifficulties, setHiddenDifficulties] = useState<Set<Difficulty>>(new Set());
+  const [showFavouritesOnly, setShowFavouritesOnly] = useState(false);
 
   // Favourites logic
-  const { favourites, addFavourite, removeFavourite, isFavourite } = useFavourites(userId);
+  const { addFavourite, removeFavourite, isFavourite } = useFavourites(userId);
   const [favError, setFavError] = useState<string | null>(null);
 
   function handleToggleType(type: SpotType) {
@@ -55,12 +62,45 @@ export default function Map() {
     });
   }
 
-  const [showFavouritesOnly, setShowFavouritesOnly] = useState(false);
+  function handleToggleFeature(feature: StreetFeature) {
+    setHiddenFeatures((prev) => {
+      const next = new Set(prev);
+      if (next.has(feature)) next.delete(feature);
+      else next.add(feature);
+      return next;
+    });
+  }
+
+  function handleToggleDifficulty(difficulty: Difficulty) {
+    setHiddenDifficulties((prev) => {
+      const next = new Set(prev);
+      if (next.has(difficulty)) next.delete(difficulty);
+      else next.add(difficulty);
+      return next;
+    });
+  }
+
+  function handleReset() {
+    setHiddenTypes(new Set());
+    setHiddenFeatures(new Set());
+    setHiddenDifficulties(new Set());
+  }
+
+  function handleHideAll() {
+    setHiddenTypes(new Set(SPOT_TYPES));
+    setHiddenFeatures(new Set(STREET_FEATURES));
+    setHiddenDifficulties(new Set(DIFFICULTIES));
+  }
+
   const visibleSpots = spots.filter((s) => {
     if (showFavouritesOnly && userId) {
       return isFavourite(s.id);
     }
-    return !hiddenTypes.has(s.spot_type);
+    if (hiddenTypes.has(s.spot_type)) return false;
+    if (s.spot_type === 'street' && s.street_feature && hiddenFeatures.has(s.street_feature))
+      return false;
+    if (hiddenDifficulties.has(s.difficulty)) return false;
+    return true;
   });
 
   useEffect(() => {
@@ -73,7 +113,7 @@ export default function Map() {
           setSpots(data ?? []);
         }
       } catch {
-        // silently fail — map still usable without spots
+        // silently fail - map still usable without spots
       }
     }
     loadSpots();
@@ -188,12 +228,19 @@ export default function Map() {
   }, []);
 
   return (
-    <div className="relative h-full w-full">
-      <div className="absolute bottom-4 left-4 z-[1000]">
-        <MapLegend hiddenTypes={hiddenTypes} onToggleType={handleToggleType} />
-      </div>
+    <div className="flex w-full flex-col gap-3">
+      <MapLegend
+        hiddenTypes={hiddenTypes}
+        onToggleType={handleToggleType}
+        hiddenFeatures={hiddenFeatures}
+        onToggleFeature={handleToggleFeature}
+        hiddenDifficulties={hiddenDifficulties}
+        onToggleDifficulty={handleToggleDifficulty}
+        onReset={handleReset}
+        onHideAll={handleHideAll}
+      />
       {userId && (
-        <div className="absolute right-4" style={{ bottom: '28px', zIndex: 1000 }}>
+        <div className="flex justify-end">
           <button
             className={`rounded px-4 py-2 text-xs font-semibold border border-blue-500 bg-white text-blue-700 hover:bg-blue-50 transition-colors ${showFavouritesOnly ? 'bg-blue-100 border-blue-700' : ''}`}
             onClick={() => setShowFavouritesOnly((v) => !v)}
@@ -202,160 +249,177 @@ export default function Map() {
           </button>
         </div>
       )}
-      <MapContainer
-        center={HRM_CENTER}
-        zoom={DEFAULT_ZOOM}
-        scrollWheelZoom={true}
-        className="h-full w-full rounded-xl"
-      >
-        <LayersControl position="topright">
-          <LayersControl.BaseLayer checked name="Simple">
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &amp; <a href="https://carto.com/">CARTO</a>'
-              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-            />
-          </LayersControl.BaseLayer>
-          <LayersControl.BaseLayer name="Standard">
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-          </LayersControl.BaseLayer>
-          <LayersControl.BaseLayer name="Light">
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &amp; <a href="https://carto.com/">CARTO</a>'
-              url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-            />
-          </LayersControl.BaseLayer>
-          <LayersControl.BaseLayer name="Dark">
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &amp; <a href="https://carto.com/">CARTO</a>'
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-            />
-          </LayersControl.BaseLayer>
-        </LayersControl>
-        <ClickHandler onMapClick={handleMapClick} />
-        {pendingPosition && (
-          <Marker position={pendingPosition} ref={pendingMarkerRef}>
-            <Popup eventHandlers={{ remove: handleCancelPin }} minWidth={240} maxWidth={300}>
-              <SpotForm
-                latitude={pendingPosition[0]}
-                longitude={pendingPosition[1]}
-                onSaved={handleSpotSaved}
-                onCancel={handleCancelPin}
-                {...(editingSpot ? { initialData: editingSpot } : {})}
+      <div className="h-[500px] overflow-hidden rounded-xl border border-border shadow-sm">
+        <MapContainer
+          center={HRM_CENTER}
+          zoom={DEFAULT_ZOOM}
+          scrollWheelZoom={true}
+          className="h-full w-full rounded-xl"
+        >
+          <LayersControl position="topright">
+            <LayersControl.BaseLayer checked name="Simple">
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &amp; <a href="https://carto.com/">CARTO</a>'
+                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
               />
-            </Popup>
-          </Marker>
-        )}
-        {visibleSpots.map((spot) => (
-          <Marker
-            key={spot.id}
-            position={[spot.latitude, spot.longitude]}
-            icon={createSpotDivIcon(getSpotIconName(spot))}
-          >
-            <Popup minWidth={220} maxWidth={280}>
-              <div className="flex flex-col gap-2">
-                {spot.image_url && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={spot.image_url}
-                    alt={spot.name}
-                    className="h-32 w-full rounded object-cover"
-                  />
-                )}
-                <p className="text-sm font-semibold">{spot.name}</p>
-                {spot.description && <p className="text-xs text-gray-600">{spot.description}</p>}
-                <div className="flex flex-wrap gap-1">
-                  <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700">
-                    {spot.spot_type}
-                  </span>
-                  {spot.street_feature && (
-                    <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-medium text-purple-700">
-                      {spot.street_feature}
-                    </span>
+            </LayersControl.BaseLayer>
+            <LayersControl.BaseLayer name="Standard">
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+            </LayersControl.BaseLayer>
+            <LayersControl.BaseLayer name="Light">
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &amp; <a href="https://carto.com/">CARTO</a>'
+                url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+              />
+            </LayersControl.BaseLayer>
+            <LayersControl.BaseLayer name="Dark">
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &amp; <a href="https://carto.com/">CARTO</a>'
+                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              />
+            </LayersControl.BaseLayer>
+          </LayersControl>
+          <ClickHandler onMapClick={handleMapClick} />
+          {pendingPosition && (
+            <Marker position={pendingPosition} ref={pendingMarkerRef}>
+              <Popup eventHandlers={{ remove: handleCancelPin }} minWidth={240} maxWidth={300}>
+                <SpotForm
+                  latitude={pendingPosition[0]}
+                  longitude={pendingPosition[1]}
+                  onSaved={handleSpotSaved}
+                  onCancel={handleCancelPin}
+                  {...(editingSpot ? { initialData: editingSpot } : {})}
+                />
+              </Popup>
+            </Marker>
+          )}
+          {visibleSpots.map((spot) => (
+            <Marker
+              key={spot.id}
+              position={[spot.latitude, spot.longitude]}
+              icon={createSpotDivIcon(getSpotIconName(spot))}
+            >
+              <Popup minWidth={220} maxWidth={280}>
+                <div className="flex flex-col gap-2">
+                  {spot.image_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={spot.image_url}
+                      alt={spot.name}
+                      className="h-32 w-full rounded object-cover"
+                    />
                   )}
-                  <span className="rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-medium text-green-700">
-                    {spot.difficulty}
-                  </span>
-                </div>
-                {spot.address && <p className="text-[10px] text-gray-400">{spot.address}</p>}
-                {/* Favourite button for all logged-in users */}
-                {userId && (
-                  <button
-                    className="ml-auto flex items-center gap-1 text-pink-600 hover:text-pink-700 focus:outline-none"
-                    aria-label={
-                      isFavourite(spot.id) ? 'Remove from favourites' : 'Add to favourites'
-                    }
-                    onClick={async () => {
-                      setFavError(null);
-                      if (isFavourite(spot.id)) {
-                        await removeFavourite(spot.id);
-                      } else {
-                        const { error } = await addFavourite(spot.id);
-                        if (error) {
-                          setFavError(error.message || 'Could not add favourite.');
-                        } else {
-                          setFavError(null);
-                        }
-                      }
-                    }}
-                  >
-                    {isFavourite(spot.id) ? (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                        className="h-5 w-5"
-                      >
-                        <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
-                      </svg>
-                    ) : (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 20 20"
-                        stroke="currentColor"
-                        className="h-5 w-5"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                        />
-                      </svg>
+                  <p className="text-sm font-semibold">{spot.name}</p>
+                  {spot.description && <p className="text-xs text-gray-600">{spot.description}</p>}
+                  <div className="flex flex-wrap gap-1">
+                    <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700">
+                      {spot.spot_type}
+                    </span>
+                    {spot.street_feature && (
+                      <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-medium text-purple-700">
+                        {spot.street_feature}
+                      </span>
                     )}
-                  </button>
-                )}
-                {favError && <div className="text-xs text-red-500 mt-1">{favError}</div>}
-                {deleteSpot && deleteSpot.id === spot.id && (
-                  <div className="mt-2 p-2 rounded bg-white shadow flex flex-col items-center">
-                    <p className="text-sm mb-4">
-                      Are you sure you want to delete{' '}
-                      <span className="font-bold">{deleteSpot.name}</span>?
-                    </p>
-                    <div className="flex gap-2">
+                    <span className="rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-medium text-green-700">
+                      {spot.difficulty}
+                    </span>
+                  </div>
+                  {spot.address && <p className="text-[10px] text-gray-400">{spot.address}</p>}
+                  {userId && (
+                    <button
+                      className="ml-auto flex items-center gap-1 text-pink-600 hover:text-pink-700 focus:outline-none"
+                      aria-label={
+                        isFavourite(spot.id) ? 'Remove from favourites' : 'Add to favourites'
+                      }
+                      onClick={async () => {
+                        setFavError(null);
+                        if (isFavourite(spot.id)) {
+                          await removeFavourite(spot.id);
+                        } else {
+                          const { error } = await addFavourite(spot.id);
+                          if (error) {
+                            setFavError(error.message || 'Could not add favourite.');
+                          } else {
+                            setFavError(null);
+                          }
+                        }
+                      }}
+                    >
+                      {isFavourite(spot.id) ? (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                          className="h-5 w-5"
+                        >
+                          <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
+                        </svg>
+                      ) : (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 20 20"
+                          stroke="currentColor"
+                          className="h-5 w-5"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  )}
+                  {favError && <div className="text-xs text-red-500 mt-1">{favError}</div>}
+                  {userId && (spot.user_id === userId || userRole === 'admin') && (
+                    <div className="flex gap-2 mt-2">
                       <button
-                        className="rounded bg-red-500 px-4 py-1 text-xs text-white hover:bg-red-600"
-                        onClick={confirmDeleteSpot}
+                        className="rounded bg-yellow-500 px-2 py-1 text-xs text-white hover:bg-yellow-600"
+                        onClick={() => handleEditSpot(spot)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600"
+                        onClick={() => handleDeleteSpot(spot)}
                       >
                         Delete
                       </button>
-                      <button
-                        className="rounded bg-gray-200 px-4 py-1 text-xs text-gray-700 hover:bg-gray-300"
-                        onClick={cancelDeleteSpot}
-                      >
-                        Cancel
-                      </button>
                     </div>
-                  </div>
-                )}
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
+                  )}
+                  {deleteSpot && deleteSpot.id === spot.id && (
+                    <div className="mt-2 p-2 rounded bg-white shadow flex flex-col items-center">
+                      <p className="text-sm mb-4">
+                        Are you sure you want to delete{' '}
+                        <span className="font-bold">{deleteSpot.name}</span>?
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          className="rounded bg-red-500 px-4 py-1 text-xs text-white hover:bg-red-600"
+                          onClick={confirmDeleteSpot}
+                        >
+                          Delete
+                        </button>
+                        <button
+                          className="rounded bg-gray-200 px-4 py-1 text-xs text-gray-700 hover:bg-gray-300"
+                          onClick={cancelDeleteSpot}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+        </MapContainer>
+      </div>
     </div>
   );
 }
