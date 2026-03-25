@@ -24,7 +24,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSubscription } from '@/components/SubscriptionContext';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -39,6 +39,19 @@ export default function Navbar() {
   const { status: subscriptionStatus, refreshStatus } = useSubscription();
   const [userName, setUserName] = useState<string | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!profileDropdownOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(e.target as Node)) {
+        setProfileDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [profileDropdownOpen]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -145,27 +158,16 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* --- Desktop Auth Buttons --- */}
+          {/* --- Desktop Auth/Profile Dropdown --- */}
           <div className="hidden items-center gap-4 md:flex">
             {isLoggedIn ? (
-              <>
-                <Link
-                  href="/dashboard"
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  Dashboard
-                </Link>
-                {isAdmin && (
-                  <Link
-                    href="/admin/dashboard"
-                    className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    Admin
-                  </Link>
-                )}
-                <Link
-                  href="/profile"
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground flex items-center gap-2"
+              <div className="relative" ref={profileDropdownRef}>
+                <button
+                  type="button"
+                  className="flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground px-3 py-2 rounded-lg border border-transparent hover:border-border focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  onClick={() => setProfileDropdownOpen((v) => !v)}
+                  aria-haspopup="menu"
+                  aria-expanded={profileDropdownOpen}
                 >
                   {userName ? (
                     <>
@@ -179,16 +181,49 @@ export default function Navbar() {
                   ) : (
                     'Profile'
                   )}
-                </Link>
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  disabled={loggingOut}
-                  className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
-                >
-                  {loggingOut ? 'Logging out…' : 'Log out'}
+                  <svg className="ml-1 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.293l3.71-3.06a.75.75 0 1 1 .96 1.15l-4.25 3.5a.75.75 0 0 1-.96 0l-4.25-3.5a.75.75 0 0 1 .02-1.06z" />
+                  </svg>
                 </button>
-              </>
+                {profileDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-lg border border-border bg-background shadow-lg z-50 animate-fade-in">
+                    <Link
+                      href="/profile"
+                      className="block px-4 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                      onClick={() => setProfileDropdownOpen(false)}
+                    >
+                      Profile
+                    </Link>
+                    <Link
+                      href="/dashboard"
+                      className="block px-4 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                      onClick={() => setProfileDropdownOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    {isAdmin && (
+                      <Link
+                        href="/admin/dashboard"
+                        className="block px-4 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                        onClick={() => setProfileDropdownOpen(false)}
+                      >
+                        Admin
+                      </Link>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProfileDropdownOpen(false);
+                        handleSignOut();
+                      }}
+                      disabled={loggingOut}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-muted hover:text-red-700 disabled:opacity-50"
+                    >
+                      {loggingOut ? 'Logging out…' : 'Log out'}
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : (
               <>
                 <Link
@@ -288,42 +323,54 @@ export default function Navbar() {
               )}
               <hr className="my-2 border-border" />
               {isLoggedIn ? (
-                <>
-                  <Link
-                    href="/dashboard"
-                    className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
-                  {isAdmin && (
+                <details className="group">
+                  <summary className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer flex items-center justify-between">
+                    Profile & Account
+                    <svg
+                      className="ml-2 h-4 w-4 group-open:rotate-180 transition-transform"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.293l3.71-3.06a.75.75 0 1 1 .96 1.15l-4.25 3.5a.75.75 0 0 1-.96 0l-4.25-3.5a.75.75 0 0 1 .02-1.06z" />
+                    </svg>
+                  </summary>
+                  <div className="flex flex-col gap-1 mt-2 pl-2">
                     <Link
-                      href="/admin/dashboard"
+                      href="/profile"
                       className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      Admin
+                      Profile
                     </Link>
-                  )}
-                  <Link
-                    href="/profile"
-                    className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Profile
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      handleSignOut();
-                    }}
-                    disabled={loggingOut}
-                    className="mx-3 rounded-lg bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
-                  >
-                    {loggingOut ? 'Logging out…' : 'Log out'}
-                  </button>
-                </>
+                    <Link
+                      href="/dashboard"
+                      className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    {isAdmin && (
+                      <Link
+                        href="/admin/dashboard"
+                        className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Admin
+                      </Link>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        handleSignOut();
+                      }}
+                      disabled={loggingOut}
+                      className="rounded-md px-3 py-2 text-sm font-medium text-red-600 hover:bg-muted hover:text-red-700 disabled:opacity-50 text-left"
+                    >
+                      {loggingOut ? 'Logging out…' : 'Log out'}
+                    </button>
+                  </div>
+                </details>
               ) : (
                 <>
                   <Link
