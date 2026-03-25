@@ -21,6 +21,8 @@ interface MapLegendProps {
   onToggleDifficulty: (difficulty: Difficulty) => void;
   onReset: () => void;
   onHideAll: () => void;
+  showFavouritesOnly?: boolean;
+  onToggleFavourites?: () => void;
 }
 
 export default function MapLegend({
@@ -32,6 +34,8 @@ export default function MapLegend({
   onToggleDifficulty,
   onReset,
   onHideAll,
+  showFavouritesOnly,
+  onToggleFavourites,
 }: MapLegendProps) {
   const streetHidden = hiddenTypes.has('street');
   const hasActiveFilters =
@@ -84,7 +88,7 @@ export default function MapLegend({
               >
                 <span
                   className="material-symbols-outlined"
-                  style={{ fontSize: '14px', color: ICON_COLOR }}
+                  style={{ fontSize: '12px', color: ICON_COLOR }}
                 >
                   {icon}
                 </span>
@@ -93,58 +97,87 @@ export default function MapLegend({
             </button>
           );
         })}
+        {onToggleFavourites && (
+          <button
+            type="button"
+            onClick={onToggleFavourites}
+            className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-all hover:bg-gray-100 ${
+              showFavouritesOnly ? 'border-pink-300 bg-pink-50' : 'border-gray-200 opacity-40'
+            }`}
+            aria-pressed={showFavouritesOnly}
+            aria-label={showFavouritesOnly ? 'Show all spots' : 'Show favourites only'}
+          >
+            <span
+              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border"
+              style={{ borderColor: '#e91e63', background: 'white' }}
+            >
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: '12px', color: '#e91e63' }}
+              >
+                favorite
+              </span>
+            </span>
+            <span className="text-gray-700">Favourites</span>
+          </button>
+        )}
       </div>
 
-      {/* Street features sub-legend */}
-      {!streetHidden && (
-        <div className="mt-2 border-t border-gray-100 pt-2">
-          <p className="mb-1.5 text-[10px] font-semibold text-gray-500">Street Features</p>
+      {/* Difficulty & Street Features side by side */}
+      <div className="mt-2 grid grid-cols-2 gap-0 border-t border-gray-100 pt-2">
+        {/* Difficulty */}
+        <div className="pr-3">
+          <p className="mb-1.5 text-[10px] font-semibold text-gray-500">Difficulty</p>
           <div className="flex flex-wrap gap-1">
-            {STREET_FEATURES.map((feature) => {
-              const isHidden = hiddenFeatures.has(feature);
+            {DIFFICULTIES.map((difficulty) => {
+              const isHidden = hiddenDifficulties.has(difficulty);
               return (
                 <button
-                  key={feature}
+                  key={difficulty}
                   type="button"
-                  onClick={() => onToggleFeature(feature)}
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-all hover:ring-1 hover:ring-purple-300 ${
+                  onClick={() => onToggleDifficulty(difficulty)}
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-all hover:ring-1 hover:ring-green-300 ${
                     isHidden
                       ? 'bg-gray-100 text-gray-400 opacity-50'
-                      : 'bg-purple-100 text-purple-700'
+                      : 'bg-green-100 text-green-700'
                   }`}
                   aria-pressed={!isHidden}
-                  aria-label={`${isHidden ? 'Show' : 'Hide'} ${formatLabel(feature)} street spots`}
+                  aria-label={`${isHidden ? 'Show' : 'Hide'} ${formatLabel(difficulty)} spots`}
                 >
-                  {formatLabel(feature)}
+                  {formatLabel(difficulty)}
                 </button>
               );
             })}
           </div>
         </div>
-      )}
 
-      {/* Difficulty filter */}
-      <div className="mt-2 border-t border-gray-100 pt-2">
-        <p className="mb-1.5 text-[10px] font-semibold text-gray-500">Difficulty</p>
-        <div className="flex flex-wrap gap-1">
-          {DIFFICULTIES.map((difficulty) => {
-            const isHidden = hiddenDifficulties.has(difficulty);
-            return (
-              <button
-                key={difficulty}
-                type="button"
-                onClick={() => onToggleDifficulty(difficulty)}
-                className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-all hover:ring-1 hover:ring-green-300 ${
-                  isHidden ? 'bg-gray-100 text-gray-400 opacity-50' : 'bg-green-100 text-green-700'
-                }`}
-                aria-pressed={!isHidden}
-                aria-label={`${isHidden ? 'Show' : 'Hide'} ${formatLabel(difficulty)} spots`}
-              >
-                {formatLabel(difficulty)}
-              </button>
-            );
-          })}
-        </div>
+        {/* Street Features */}
+        {!streetHidden && (
+          <div className="border-l border-gray-200 pl-3">
+            <p className="mb-1.5 text-[10px] font-semibold text-gray-500">Street Features</p>
+            <div className="flex flex-wrap gap-1">
+              {STREET_FEATURES.map((feature) => {
+                const isHidden = hiddenFeatures.has(feature);
+                return (
+                  <button
+                    key={feature}
+                    type="button"
+                    onClick={() => onToggleFeature(feature)}
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-all hover:ring-1 hover:ring-purple-300 ${
+                      isHidden
+                        ? 'bg-gray-100 text-gray-400 opacity-50'
+                        : 'bg-purple-100 text-purple-700'
+                    }`}
+                    aria-pressed={!isHidden}
+                    aria-label={`${isHidden ? 'Show' : 'Hide'} ${formatLabel(feature)} street spots`}
+                  >
+                    {formatLabel(feature)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
