@@ -241,19 +241,16 @@ export default function Map() {
           onHideAll={handleHideAll}
         />
       </div>
-      <MapLegend
-        hiddenTypes={hiddenTypes}
-        onToggleType={handleToggleType}
-        hiddenFeatures={hiddenFeatures}
-        onToggleFeature={handleToggleFeature}
-        hiddenDifficulties={hiddenDifficulties}
-        onToggleDifficulty={handleToggleDifficulty}
-        onReset={handleReset}
-        onHideAll={handleHideAll}
-        {...(userId
-          ? { showFavouritesOnly, onToggleFavourites: () => setShowFavouritesOnly((v) => !v) }
-          : {})}
-      />
+      {userId && (
+        <div className="flex justify-end">
+          <button
+            className={`rounded px-4 py-2 text-xs font-semibold border border-blue-500 bg-white text-blue-700 hover:bg-blue-50 transition-colors ${showFavouritesOnly ? 'bg-blue-100 border-blue-700' : ''}`}
+            onClick={() => setShowFavouritesOnly((v) => !v)}
+          >
+            {showFavouritesOnly ? 'Show All Spots' : 'Show Favourites Only'}
+          </button>
+        </div>
+      )}
       <div className="h-[500px] overflow-hidden rounded-xl border border-border shadow-sm">
         <MapContainer
           center={HRM_CENTER}
