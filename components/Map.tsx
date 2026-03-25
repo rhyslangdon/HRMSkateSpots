@@ -229,6 +229,18 @@ export default function Map() {
 
   return (
     <div className="flex w-full flex-col gap-3">
+      <div className="mt-6">
+        <MapLegend
+          hiddenTypes={hiddenTypes}
+          onToggleType={handleToggleType}
+          hiddenFeatures={hiddenFeatures}
+          onToggleFeature={handleToggleFeature}
+          hiddenDifficulties={hiddenDifficulties}
+          onToggleDifficulty={handleToggleDifficulty}
+          onReset={handleReset}
+          onHideAll={handleHideAll}
+        />
+      </div>
       <MapLegend
         hiddenTypes={hiddenTypes}
         onToggleType={handleToggleType}
