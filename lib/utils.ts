@@ -1,4 +1,5 @@
 // =============================================================================
+
 // UTILITY FUNCTIONS
 // =============================================================================
 // Place shared utility functions here. These are helper functions used across

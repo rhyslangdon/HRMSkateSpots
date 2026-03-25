@@ -241,16 +241,6 @@ export default function Map() {
           onHideAll={handleHideAll}
         />
       </div>
-      <MapLegend
-        hiddenTypes={hiddenTypes}
-        onToggleType={handleToggleType}
-        hiddenFeatures={hiddenFeatures}
-        onToggleFeature={handleToggleFeature}
-        hiddenDifficulties={hiddenDifficulties}
-        onToggleDifficulty={handleToggleDifficulty}
-        onReset={handleReset}
-        onHideAll={handleHideAll}
-      />
       {userId && (
         <div className="flex justify-end">
           <button
