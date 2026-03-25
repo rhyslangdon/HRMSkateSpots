@@ -1,3 +1,12 @@
+/**
+ * Mirrors a row from the `favourites` table in Supabase.
+ */
+export interface Favourite {
+  id: string;
+  user_id: string;
+  spot_id: string;
+  created_at: string;
+}
 // =============================================================================
 // SHARED TYPE DEFINITIONS
 // =============================================================================

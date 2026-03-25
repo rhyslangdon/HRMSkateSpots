@@ -1,6 +1,6 @@
-import { getSpotIconName, createSpotDivIcon } from './SpotMarkerIcon';
-('use client');
+'use client';
 
+import { getSpotIconName, createSpotDivIcon } from './SpotMarkerIcon';
 import { useCallback, useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, LayersControl } from 'react-leaflet';
 import L from 'leaflet';
@@ -9,6 +9,7 @@ import SpotForm from '@/components/SpotForm';
 import MapLegend from '@/components/MapLegend';
 import { createClient } from '@/lib/supabase/client';
 import type { Spot, SpotType, StreetFeature, Difficulty } from '@/types';
+import { useFavourites } from '@/hooks/useFavourites';
 
 const SPOT_TYPES: SpotType[] = ['street', 'park', 'diy', 'transition', 'flatground', 'other'];
 const STREET_FEATURES: StreetFeature[] = ['ledge', 'stairs', 'handrail', 'gap', 'bank', 'other'];
@@ -46,6 +47,11 @@ export default function Map() {
   const [hiddenTypes, setHiddenTypes] = useState<Set<SpotType>>(new Set());
   const [hiddenFeatures, setHiddenFeatures] = useState<Set<StreetFeature>>(new Set());
   const [hiddenDifficulties, setHiddenDifficulties] = useState<Set<Difficulty>>(new Set());
+  const [showFavouritesOnly, setShowFavouritesOnly] = useState(false);
+
+  // Favourites logic
+  const { addFavourite, removeFavourite, isFavourite } = useFavourites(userId);
+  const [favError, setFavError] = useState<string | null>(null);
 
   function handleToggleType(type: SpotType) {
     setHiddenTypes((prev) => {
@@ -87,6 +93,9 @@ export default function Map() {
   }
 
   const visibleSpots = spots.filter((s) => {
+    if (showFavouritesOnly && userId) {
+      return isFavourite(s.id);
+    }
     if (hiddenTypes.has(s.spot_type)) return false;
     if (s.spot_type === 'street' && s.street_feature && hiddenFeatures.has(s.street_feature))
       return false;
@@ -104,7 +113,7 @@ export default function Map() {
           setSpots(data ?? []);
         }
       } catch {
-        // silently fail — map still usable without spots
+        // silently fail - map still usable without spots
       }
     }
     loadSpots();
@@ -232,6 +241,26 @@ export default function Map() {
           onHideAll={handleHideAll}
         />
       </div>
+      <MapLegend
+        hiddenTypes={hiddenTypes}
+        onToggleType={handleToggleType}
+        hiddenFeatures={hiddenFeatures}
+        onToggleFeature={handleToggleFeature}
+        hiddenDifficulties={hiddenDifficulties}
+        onToggleDifficulty={handleToggleDifficulty}
+        onReset={handleReset}
+        onHideAll={handleHideAll}
+      />
+      {userId && (
+        <div className="flex justify-end">
+          <button
+            className={`rounded px-4 py-2 text-xs font-semibold border border-blue-500 bg-white text-blue-700 hover:bg-blue-50 transition-colors ${showFavouritesOnly ? 'bg-blue-100 border-blue-700' : ''}`}
+            onClick={() => setShowFavouritesOnly((v) => !v)}
+          >
+            {showFavouritesOnly ? 'Show All Spots' : 'Show Favourites Only'}
+          </button>
+        </div>
+      )}
       <div className="h-[500px] overflow-hidden rounded-xl border border-border shadow-sm">
         <MapContainer
           center={HRM_CENTER}
@@ -311,6 +340,54 @@ export default function Map() {
                     </span>
                   </div>
                   {spot.address && <p className="text-[10px] text-gray-400">{spot.address}</p>}
+                  {userId && (
+                    <button
+                      className="ml-auto flex items-center gap-1 text-pink-600 hover:text-pink-700 focus:outline-none"
+                      aria-label={
+                        isFavourite(spot.id) ? 'Remove from favourites' : 'Add to favourites'
+                      }
+                      onClick={async () => {
+                        setFavError(null);
+                        if (isFavourite(spot.id)) {
+                          await removeFavourite(spot.id);
+                        } else {
+                          const { error } = await addFavourite(spot.id);
+                          if (error) {
+                            setFavError(error.message || 'Could not add favourite.');
+                          } else {
+                            setFavError(null);
+                          }
+                        }
+                      }}
+                    >
+                      {isFavourite(spot.id) ? (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                          className="h-5 w-5"
+                        >
+                          <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
+                        </svg>
+                      ) : (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 20 20"
+                          stroke="currentColor"
+                          className="h-5 w-5"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  )}
+                  {favError && <div className="text-xs text-red-500 mt-1">{favError}</div>}
                   {userId && (spot.user_id === userId || userRole === 'admin') && (
                     <div className="flex gap-2 mt-2">
                       <button
