@@ -44,15 +44,15 @@ export default function MapLegend({
     hiddenTypes.size === SPOT_TYPES.length && hiddenDifficulties.size === DIFFICULTIES.length;
 
   return (
-    <div className="rounded-lg border border-border bg-white/95 p-3 shadow-sm">
+    <div className="rounded-lg border border-border bg-background p-3 shadow-sm transition-colors">
       <div className="mb-2 flex items-center justify-between">
-        <p className="text-xs font-semibold text-gray-700">Spot Types</p>
+        <p className="text-xs font-semibold text-foreground">Spot Types</p>
         <div className="flex gap-1.5">
           <button
             type="button"
             onClick={onReset}
             disabled={!hasActiveFilters}
-            className="rounded px-2 py-0.5 text-[10px] font-medium text-blue-600 transition-colors hover:bg-blue-50 disabled:cursor-default disabled:text-gray-300"
+            className="rounded px-2 py-0.5 text-[10px] font-medium text-primary transition-colors hover:bg-primary/10 disabled:cursor-default disabled:text-muted-foreground"
           >
             Show All
           </button>
@@ -60,7 +60,7 @@ export default function MapLegend({
             type="button"
             onClick={onHideAll}
             disabled={allHidden}
-            className="rounded px-2 py-0.5 text-[10px] font-medium text-gray-600 transition-colors hover:bg-gray-100 disabled:cursor-default disabled:text-gray-300"
+            className="rounded px-2 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-muted disabled:cursor-default disabled:text-muted-foreground/60"
           >
             Hide All
           </button>
@@ -76,8 +76,8 @@ export default function MapLegend({
               key={type}
               type="button"
               onClick={() => onToggleType(type)}
-              className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-all hover:bg-gray-100 ${
-                isHidden ? 'border-gray-200 opacity-40' : 'border-blue-200 bg-blue-50'
+              className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-all hover:bg-muted ${
+                isHidden ? 'border-border opacity-40' : 'border-primary/30 bg-primary/10'
               }`}
               aria-pressed={!isHidden}
               aria-label={`${isHidden ? 'Show' : 'Hide'} ${label} spots`}
@@ -93,7 +93,7 @@ export default function MapLegend({
                   {icon}
                 </span>
               </span>
-              <span className="text-gray-700">{label}</span>
+              <span className="text-foreground">{label}</span>
             </button>
           );
         })}
@@ -101,8 +101,8 @@ export default function MapLegend({
           <button
             type="button"
             onClick={onToggleFavourites}
-            className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-all hover:bg-gray-100 ${
-              showFavouritesOnly ? 'border-pink-300 bg-pink-50' : 'border-gray-200 opacity-40'
+            className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-all hover:bg-muted ${
+              showFavouritesOnly ? 'border-pink-300 bg-pink-50' : 'border-border opacity-40'
             }`}
             aria-pressed={showFavouritesOnly}
             aria-label={showFavouritesOnly ? 'Show all spots' : 'Show favourites only'}
@@ -118,16 +118,16 @@ export default function MapLegend({
                 favorite
               </span>
             </span>
-            <span className="text-gray-700">Favourites</span>
+            <span className="text-foreground">Favourites</span>
           </button>
         )}
       </div>
 
       {/* Difficulty & Street Features side by side */}
-      <div className="mt-2 grid grid-cols-2 gap-0 border-t border-gray-100 pt-2">
+      <div className="mt-2 grid grid-cols-2 gap-0 border-t border-border pt-2">
         {/* Difficulty */}
         <div className="pr-3">
-          <p className="mb-1.5 text-[10px] font-semibold text-gray-500">Difficulty</p>
+          <p className="mb-1.5 text-[10px] font-semibold text-muted-foreground">Difficulty</p>
           <div className="flex flex-wrap gap-1">
             {DIFFICULTIES.map((difficulty) => {
               const isHidden = hiddenDifficulties.has(difficulty);
@@ -136,10 +136,10 @@ export default function MapLegend({
                   key={difficulty}
                   type="button"
                   onClick={() => onToggleDifficulty(difficulty)}
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-all hover:ring-1 hover:ring-green-300 ${
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-all hover:ring-1 hover:ring-primary/40 ${
                     isHidden
-                      ? 'bg-gray-100 text-gray-400 opacity-50'
-                      : 'bg-green-100 text-green-700'
+                      ? 'bg-muted text-muted-foreground opacity-50'
+                      : 'bg-primary/15 text-primary'
                   }`}
                   aria-pressed={!isHidden}
                   aria-label={`${isHidden ? 'Show' : 'Hide'} ${formatLabel(difficulty)} spots`}
@@ -153,8 +153,10 @@ export default function MapLegend({
 
         {/* Street Features */}
         {!streetHidden && (
-          <div className="border-l border-gray-200 pl-3">
-            <p className="mb-1.5 text-[10px] font-semibold text-gray-500">Street Features</p>
+          <div className="border-l border-border pl-3">
+            <p className="mb-1.5 text-[10px] font-semibold text-muted-foreground">
+              Street Features
+            </p>
             <div className="flex flex-wrap gap-1">
               {STREET_FEATURES.map((feature) => {
                 const isHidden = hiddenFeatures.has(feature);
@@ -163,9 +165,9 @@ export default function MapLegend({
                     key={feature}
                     type="button"
                     onClick={() => onToggleFeature(feature)}
-                    className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-all hover:ring-1 hover:ring-purple-300 ${
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-all hover:ring-1 hover:ring-primary/40 ${
                       isHidden
-                        ? 'bg-gray-100 text-gray-400 opacity-50'
+                        ? 'bg-muted text-muted-foreground opacity-50'
                         : 'bg-purple-100 text-purple-700'
                     }`}
                     aria-pressed={!isHidden}

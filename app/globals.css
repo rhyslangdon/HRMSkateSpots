@@ -29,7 +29,8 @@
 /* --- Design Tokens --- */
 /* These CSS custom properties define your app's color palette.
    Change these to match your project's brand. */
-:root {
+:root,
+:root[data-theme='light'] {
   --background: #ffffff;
   --foreground: #171717;
   --primary: #2563eb;
@@ -53,13 +54,20 @@
   --font-sans: var(--font-inter);
 }
 
-/* --- Dark Mode --- */
-/* STUDENT: Dark mode is an enhancement. Uncomment and customize the
-   dark mode colors below when you're ready to implement it.
-   See /docs/styling.md and STRETCH_GOALS.md for guidance. */
-/*
+/* --- Dark Mode (via data-theme on root) --- */
+:root[data-theme='dark'] {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --muted: #262626;
+  --muted-foreground: #a3a3a3;
+  --border: #404040;
+}
+
+/* Fallback: use system preference if no explicit theme is set */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
     --background: #0a0a0a;
     --foreground: #ededed;
     --primary: #3b82f6;
@@ -69,11 +77,38 @@
     --border: #404040;
   }
 }
-*/
 
 /* --- Base Styles --- */
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+}
+
+/* Leaflet UI should follow app theme tokens */
+.leaflet-container {
+  background: var(--muted);
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.leaflet-control-layers,
+.leaflet-bar {
+  background: var(--background);
+  border-color: var(--border);
+}
+
+.leaflet-control-layers-toggle,
+.leaflet-control-layers-base label,
+.leaflet-control-layers-overlays label,
+.leaflet-control-attribution {
+  color: var(--foreground);
+}
+
+[data-theme='dark'] .leaflet-control-attribution {
+  background: color-mix(in srgb, var(--background) 92%, transparent);
 }

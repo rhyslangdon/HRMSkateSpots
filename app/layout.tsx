@@ -26,6 +26,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import UnauthorizedToast from '@/components/UnauthorizedToast';
 import { SubscriptionProvider } from '@/components/SubscriptionContext';
+import { ThemeProvider } from '@/components/ThemeContext';
 
 // --- Font Configuration ---
 // next/font automatically optimizes fonts — no external requests at runtime.
@@ -53,17 +54,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className="font-sans antialiased">
-        <SubscriptionProvider>
-          <Navbar />
-          <main className="min-h-screen">{children}</main>
-          <Footer />
-        </SubscriptionProvider>
-        <Toaster position="bottom-right" richColors />
-        <Suspense>
-          <UnauthorizedToast />
-        </Suspense>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
+      <body className="font-sans antialiased" suppressHydrationWarning>
+        <ThemeProvider>
+          <SubscriptionProvider>
+            <Navbar />
+            <main className="min-h-screen">{children}</main>
+            <Footer />
+          </SubscriptionProvider>
+          <Toaster position="bottom-right" richColors />
+          <Suspense>
+            <UnauthorizedToast />
+          </Suspense>
+        </ThemeProvider>
       </body>
     </html>
   );

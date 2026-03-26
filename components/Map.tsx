@@ -10,6 +10,7 @@ import MapLegend from '@/components/MapLegend';
 import { createClient } from '@/lib/supabase/client';
 import type { Spot, SpotType, StreetFeature, Difficulty } from '@/types';
 import { useFavourites } from '@/hooks/useFavourites';
+import { useTheme } from '@/components/ThemeContext';
 
 const SPOT_TYPES: SpotType[] = ['street', 'park', 'diy', 'transition', 'flatground', 'other'];
 const STREET_FEATURES: StreetFeature[] = ['ledge', 'stairs', 'handrail', 'gap', 'bank', 'other'];
@@ -37,6 +38,7 @@ function ClickHandler({ onMapClick }: { onMapClick: (latlng: [number, number]) =
 }
 
 export default function Map() {
+  const { theme } = useTheme();
   const [spots, setSpots] = useState<Spot[]>([]);
   const [pendingPosition, setPendingPosition] = useState<[number, number] | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -244,7 +246,11 @@ export default function Map() {
       {userId && (
         <div className="flex justify-end">
           <button
-            className={`rounded px-4 py-2 text-xs font-semibold border border-blue-500 bg-white text-blue-700 hover:bg-blue-50 transition-colors ${showFavouritesOnly ? 'bg-blue-100 border-blue-700' : ''}`}
+            className={`rounded border px-4 py-2 text-xs font-semibold transition-colors ${
+              showFavouritesOnly
+                ? 'border-primary bg-primary/15 text-primary'
+                : 'border-border bg-background text-foreground hover:bg-muted'
+            }`}
             onClick={() => setShowFavouritesOnly((v) => !v)}
           >
             {showFavouritesOnly ? 'Show All Spots' : 'Show Favourites Only'}
@@ -253,13 +259,14 @@ export default function Map() {
       )}
       <div className="h-[500px] overflow-hidden rounded-xl border border-border shadow-sm">
         <MapContainer
+          key={`map-${theme}`}
           center={HRM_CENTER}
           zoom={DEFAULT_ZOOM}
           scrollWheelZoom={true}
           className="h-full w-full rounded-xl"
         >
           <LayersControl position="topright">
-            <LayersControl.BaseLayer checked name="Simple">
+            <LayersControl.BaseLayer checked={theme === 'light'} name="Simple">
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &amp; <a href="https://carto.com/">CARTO</a>'
                 url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
@@ -277,7 +284,7 @@ export default function Map() {
                 url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
               />
             </LayersControl.BaseLayer>
-            <LayersControl.BaseLayer name="Dark">
+            <LayersControl.BaseLayer checked={theme === 'dark'} name="Dark">
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &amp; <a href="https://carto.com/">CARTO</a>'
                 url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
@@ -314,8 +321,10 @@ export default function Map() {
                       className="h-32 w-full rounded object-cover"
                     />
                   )}
-                  <p className="text-sm font-semibold">{spot.name}</p>
-                  {spot.description && <p className="text-xs text-gray-600">{spot.description}</p>}
+                  <p className="text-sm font-semibold text-foreground">{spot.name}</p>
+                  {spot.description && (
+                    <p className="text-xs text-muted-foreground">{spot.description}</p>
+                  )}
                   <div className="flex flex-wrap gap-1">
                     <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700">
                       {spot.spot_type}
@@ -329,7 +338,9 @@ export default function Map() {
                       {spot.difficulty}
                     </span>
                   </div>
-                  {spot.address && <p className="text-[10px] text-gray-400">{spot.address}</p>}
+                  {spot.address && (
+                    <p className="text-[10px] text-muted-foreground">{spot.address}</p>
+                  )}
                   {userId && (
                     <button
                       className="ml-auto flex items-center gap-1 text-pink-600 hover:text-pink-700 focus:outline-none"
@@ -395,7 +406,7 @@ export default function Map() {
                     </div>
                   )}
                   {deleteSpot && deleteSpot.id === spot.id && (
-                    <div className="mt-2 p-2 rounded bg-white shadow flex flex-col items-center">
+                    <div className="mt-2 flex flex-col items-center rounded border border-border bg-background p-2 shadow">
                       <p className="text-sm mb-4">
                         Are you sure you want to delete{' '}
                         <span className="font-bold">{deleteSpot.name}</span>?
@@ -408,7 +419,7 @@ export default function Map() {
                           Delete
                         </button>
                         <button
-                          className="rounded bg-gray-200 px-4 py-1 text-xs text-gray-700 hover:bg-gray-300"
+                          className="rounded border border-border bg-muted px-4 py-1 text-xs text-foreground hover:bg-muted/80"
                           onClick={cancelDeleteSpot}
                         >
                           Cancel
