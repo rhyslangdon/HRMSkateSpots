@@ -17,10 +17,10 @@
 // See /docs/payments.md for subscription and premium tier guidance.
 // =============================================================================
 
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useSubscription } from '@/components/SubscriptionContext';
+import AvatarUpload from '@/components/AvatarUpload';
 
 function SubscriptionSection() {
   const { status, setStatus, refreshStatus } = useSubscription();
@@ -128,6 +128,26 @@ function SubscriptionSection() {
 }
 
 export default function ProfilePage() {
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  // Fetch current avatar URL on mount
+  useEffect(() => {
+    (async () => {
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('avatar_url')
+        .eq('id', user.id)
+        .single();
+      if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
+    })();
+  }, []);
+
   return (
     <div className="px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-3xl">
@@ -139,18 +159,11 @@ export default function ProfilePage() {
         <section className="mt-8 rounded-xl border border-border bg-background p-6">
           <h2 className="text-xl font-semibold text-foreground">Profile Information</h2>
           <div className="mt-6 space-y-6">
-            {/* Avatar Placeholder */}
-            <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted text-2xl">
-                👤
-              </div>
-              <button
-                type="button"
-                className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-              >
-                Change avatar
-              </button>
-            </div>
+            {/* Avatar Upload */}
+            <AvatarUpload
+              currentAvatarUrl={avatarUrl}
+              onUploadComplete={(url) => setAvatarUrl(url)}
+            />
 
             {/* Name */}
             <div>
