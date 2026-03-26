@@ -21,6 +21,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useSubscription } from '@/components/SubscriptionContext';
+import { useTheme } from '@/components/ThemeContext';
 
 function SubscriptionSection() {
   const { status, setStatus, refreshStatus } = useSubscription();
@@ -128,10 +129,22 @@ function SubscriptionSection() {
 }
 
 export default function ProfilePage() {
+  const { toggleTheme } = useTheme();
   return (
     <div className="px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-3xl">
-        <h1 className="text-3xl font-bold text-foreground">Account Settings</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-foreground">Account Settings</h1>
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+            aria-label="Toggle light/dark mode"
+            type="button"
+          >
+            <span>Toggle theme</span>
+          </button>
+        </div>
         <p className="mt-2 text-muted-foreground">Manage your profile and preferences.</p>
 
         {/* --- Profile Information --- */}
