@@ -35,23 +35,22 @@ function SubscriptionSection() {
     setError('');
     setSuccess(false);
     try {
-      const { createClient } = await import('@/lib/supabase/client');
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not logged in');
-      const { error } = await supabase
-        .from('profiles')
-        .update({ subscription_status: 'free' })
-        .eq('id', user.id);
-      if (error) throw error;
+      const response = await fetch('/api/subscription/downgrade', {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(payload?.error || 'Failed to cancel subscription.');
+      }
+
       setStatus('free');
       setSuccess(true);
       setShowConfirm(false);
       await refreshStatus();
-    } catch (err: any) {
-      setError('Failed to remove premium.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to remove premium.';
+      setError(message);
     } finally {
       setLoading(false);
     }

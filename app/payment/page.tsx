@@ -1,267 +1,83 @@
 'use client';
+
 import { useState } from 'react';
-import { useSubscription } from '@/components/SubscriptionContext';
+import { createClient } from '@/lib/supabase/client';
 
 export default function PaymentPage() {
-  const [cardNumber, setCardNumber] = useState('');
-  const [expiry, setExpiry] = useState('');
-  const [cvc, setCvc] = useState('');
-  const [name, setName] = useState('');
-  const [address, setAddress] = useState('');
-  const [city, setCity] = useState('');
-  const [postal, setPostal] = useState('');
-  const [country, setCountry] = useState('');
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-  const { setStatus, refreshStatus } = useSubscription();
 
-  // Format card number as 4242 4242 4242 4242
-  function formatCardNumber(value: string) {
-    return value
-      .replace(/\D/g, '')
-      .replace(/(.{4})/g, '$1 ')
-      .trim();
-  }
-
-  // Format expiry as MM/YY
-  function formatExpiry(value: string) {
-    let v = value.replace(/\D/g, '');
-    if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2, 4);
-    return v.slice(0, 5);
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    // Basic fake validation
-    if (
-      cardNumber.replace(/\D/g, '').length !== 16 ||
-      expiry.length !== 5 ||
-      cvc.length < 3 ||
-      !name ||
-      !address ||
-      !city ||
-      !postal ||
-      !country
-    ) {
-      setError('Please fill out all fields with valid info.');
-      return;
-    }
+  const startCheckout = async () => {
     setLoading(true);
-    setTimeout(() => {
+    setError('');
+
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user?.email) {
+        setError('Please log in before starting checkout.');
+        setLoading(false);
+        return;
+      }
+
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email }),
+      });
+
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(payload?.error || 'Could not create checkout session.');
+      }
+
+      const payload = (await res.json()) as { url?: string };
+
+      if (!payload.url) {
+        throw new Error('Checkout session URL missing.');
+      }
+
+      window.location.href = payload.url;
+    } catch (err) {
       setLoading(false);
-      // Update subscription in Supabase
-      (async () => {
-        try {
-          const { createClient } = await import('@/lib/supabase/client');
-          const supabase = createClient();
-          const {
-            data: { user },
-            error: userError,
-          } = await supabase.auth.getUser();
-          if (userError || !user) {
-            setError('Could not get user info. Please log in.');
-            return;
-          }
-          const { error: updateError } = await supabase
-            .from('profiles')
-            .update({ subscription_status: 'premium' })
-            .eq('id', user.id);
-          if (updateError) {
-            setError('Failed to upgrade subscription. Try again.');
-            return;
-          }
-          setSuccess(true);
-          setStatus('premium');
-          await refreshStatus();
-        } catch (err) {
-          setError('Unexpected error. Try again.');
-        }
-      })();
-    }, 1500);
+      setError(err instanceof Error ? err.message : 'Unexpected checkout error.');
+    }
   };
 
   return (
-    <div className="max-w-lg mx-auto mt-16 mb-16 p-8 border rounded-xl bg-background shadow">
-      <h1 className="text-2xl font-bold mb-2 text-foreground text-center">Payment Details</h1>
-      <div className="mb-8 text-center">
-        <div className="inline-block bg-muted rounded-lg px-6 py-4 shadow-sm">
-          <div className="text-lg font-semibold text-foreground">Premium Subscription</div>
-          <div className="text-2xl font-bold text-primary mt-1">
-            $19.00 <span className="text-base font-normal text-muted-foreground">/ month</span>
-          </div>
-          <ul className="mt-2 text-sm text-muted-foreground text-left list-disc list-inside">
-            <li>Unlimited skate spot submissions</li>
-            <li>Access to premium features</li>
-            <li>Priority support</li>
-            <li>Cancel anytime</li>
-          </ul>
+    <div className="mx-auto mb-16 mt-16 max-w-lg rounded-xl border bg-background p-8 shadow">
+      <h1 className="mb-2 text-center text-2xl font-bold text-foreground">Upgrade to Premium</h1>
+      <p className="mb-8 text-center text-sm text-muted-foreground">
+        You will be redirected to Stripe Checkout in test mode.
+      </p>
+
+      <div className="mb-8 rounded-lg bg-muted px-6 py-4 shadow-sm">
+        <div className="text-lg font-semibold text-foreground">Premium Subscription</div>
+        <div className="mt-1 text-2xl font-bold text-primary">
+          $19.00 <span className="text-base font-normal text-muted-foreground">/ month</span>
         </div>
+        <ul className="mt-2 list-inside list-disc text-left text-sm text-muted-foreground">
+          <li>Unlimited skate spot submissions</li>
+          <li>Access to premium features</li>
+          <li>Priority support</li>
+          <li>Cancel anytime</li>
+        </ul>
       </div>
-      {success ? (
-        <div className="text-green-600 font-semibold text-center">
-          Payment successful! Your account is now premium.
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <fieldset className="space-y-4">
-            <legend className="font-semibold text-lg mb-2">Card Information</legend>
-            <div>
-              <label htmlFor="cardNumber" className="block text-sm font-medium mb-1">
-                Card Number
-              </label>
-              <input
-                id="cardNumber"
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9 ]*"
-                className="w-full border rounded px-3 py-2 tracking-widest text-lg font-mono"
-                placeholder="4242 4242 4242 4242"
-                value={cardNumber}
-                onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                maxLength={19}
-                disabled={loading}
-                autoComplete="cc-number"
-                required
-              />
-            </div>
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <label htmlFor="expiry" className="block text-sm font-medium mb-1">
-                  Expiry
-                </label>
-                <input
-                  id="expiry"
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9/]*"
-                  className="w-full border rounded px-3 py-2 font-mono"
-                  placeholder="MM/YY"
-                  value={expiry}
-                  onChange={(e) => setExpiry(formatExpiry(e.target.value))}
-                  maxLength={5}
-                  disabled={loading}
-                  autoComplete="cc-exp"
-                  required
-                />
-              </div>
-              <div className="flex-1">
-                <label htmlFor="cvc" className="block text-sm font-medium mb-1">
-                  CVC
-                </label>
-                <input
-                  id="cvc"
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  className="w-full border rounded px-3 py-2 font-mono"
-                  placeholder="123"
-                  value={cvc}
-                  onChange={(e) => setCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                  maxLength={4}
-                  disabled={loading}
-                  autoComplete="cc-csc"
-                  required
-                />
-              </div>
-            </div>
-          </fieldset>
-          <fieldset className="space-y-4">
-            <legend className="font-semibold text-lg mb-2">Billing Address</legend>
-            <div>
-              <label htmlFor="fullName" className="block text-sm font-medium mb-1">
-                Full Name
-              </label>
-              <input
-                id="fullName"
-                type="text"
-                className="w-full border rounded px-3 py-2"
-                placeholder="Name on card"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={loading}
-                autoComplete="name"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="address" className="block text-sm font-medium mb-1">
-                Address
-              </label>
-              <input
-                id="address"
-                type="text"
-                className="w-full border rounded px-3 py-2"
-                placeholder="123 Main St"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                disabled={loading}
-                autoComplete="address-line1"
-                required
-              />
-            </div>
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <label htmlFor="city" className="block text-sm font-medium mb-1">
-                  City
-                </label>
-                <input
-                  id="city"
-                  type="text"
-                  className="w-full border rounded px-3 py-2"
-                  placeholder="City"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  disabled={loading}
-                  autoComplete="address-level2"
-                  required
-                />
-              </div>
-              <div className="flex-1">
-                <label htmlFor="postal" className="block text-sm font-medium mb-1">
-                  Postal Code
-                </label>
-                <input
-                  id="postal"
-                  type="text"
-                  className="w-full border rounded px-3 py-2"
-                  placeholder="Postal Code"
-                  value={postal}
-                  onChange={(e) => setPostal(e.target.value)}
-                  disabled={loading}
-                  autoComplete="postal-code"
-                  required
-                />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="country" className="block text-sm font-medium mb-1">
-                Country
-              </label>
-              <input
-                id="country"
-                type="text"
-                className="w-full border rounded px-3 py-2"
-                placeholder="Country"
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                disabled={loading}
-                autoComplete="country"
-                required
-              />
-            </div>
-          </fieldset>
-          {error && <div className="text-red-600 text-sm">{error}</div>}
-          <button
-            type="submit"
-            className="w-full bg-primary text-white font-semibold py-2 rounded disabled:opacity-60 mt-2"
-            disabled={loading}
-          >
-            {loading ? 'Processing...' : 'Pay & Upgrade'}
-          </button>
-        </form>
-      )}
+
+      {error && <div className="mb-4 text-sm text-red-600">{error}</div>}
+
+      <button
+        type="button"
+        className="mt-2 w-full rounded bg-primary py-2 font-semibold text-white disabled:opacity-60"
+        disabled={loading}
+        onClick={startCheckout}
+      >
+        {loading ? 'Redirecting to Stripe...' : 'Continue to Stripe Checkout'}
+      </button>
     </div>
   );
 }
