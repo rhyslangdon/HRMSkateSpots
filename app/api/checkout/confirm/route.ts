@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@/lib/supabase/server';
+import { sendPremiumWelcomeEmail } from '@/lib/emails';
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
@@ -59,6 +60,18 @@ export async function POST(request: NextRequest) {
 
     if (updateError) {
       return NextResponse.json({ error: 'Failed to update subscription status.' }, { status: 500 });
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('display_name')
+      .eq('id', user.id)
+      .single();
+
+    try {
+      await sendPremiumWelcomeEmail(user.email!, profile?.display_name);
+    } catch {
+      // Email failure should not block the upgrade
     }
 
     return NextResponse.json({ ok: true });
