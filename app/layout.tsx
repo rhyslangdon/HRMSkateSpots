@@ -25,6 +25,7 @@ import './globals.css';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import UnauthorizedToast from '@/components/UnauthorizedToast';
+import EmailVerificationBanner from '@/components/EmailVerificationBanner';
 import { SubscriptionProvider } from '@/components/SubscriptionContext';
 import { ThemeProvider } from '@/components/ThemeContext';
 
@@ -59,6 +60,7 @@ export default function RootLayout({
         <ThemeProvider>
           <SubscriptionProvider>
             <Navbar />
+            <EmailVerificationBanner />
             <main className="min-h-screen">{children}</main>
             <Footer />
           </SubscriptionProvider>

@@ -31,6 +31,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    if (!user.email_confirmed_at) {
+      return NextResponse.json(
+        { error: 'Please verify your email address before subscribing.' },
+        { status: 403 }
+      );
+    }
+
     const payload = (await request.json().catch(() => ({}))) as { email?: string };
     const customerEmail = payload.email || user.email;
 

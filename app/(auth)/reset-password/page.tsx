@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 
-export default function SignupPage() {
+export default function ResetPasswordPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
     password: '',
     confirmPassword: '',
   });
@@ -32,15 +32,8 @@ export default function SignupPage() {
     setLoading(true);
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signUp({
-      email: formData.email,
+    const { error } = await supabase.auth.updateUser({
       password: formData.password,
-      options: {
-        data: {
-          display_name: formData.name,
-        },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
     });
 
     if (error) {
@@ -57,11 +50,19 @@ export default function SignupPage() {
     return (
       <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <div className="w-full max-w-md text-center">
-          <h1 className="text-3xl font-bold text-foreground">Check your email</h1>
+          <h1 className="text-3xl font-bold text-foreground">Password updated!</h1>
           <p className="mt-4 text-sm text-muted-foreground">
-            We sent a confirmation link to <strong>{formData.email}</strong>. Click the link to
-            activate your account.
+            Your password has been successfully reset. You can now log in with your new password.
           </p>
+          <button
+            onClick={() => {
+              router.push('/dashboard');
+              router.refresh();
+            }}
+            className="mt-6 inline-block rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Go to Dashboard
+          </button>
         </div>
       </div>
     );
@@ -71,10 +72,8 @@ export default function SignupPage() {
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-foreground">Create your account</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Get started with HRM Skate Spots today
-          </p>
+          <h1 className="text-3xl font-bold text-foreground">Reset your password</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Enter your new password below.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
@@ -83,46 +82,10 @@ export default function SignupPage() {
               {error}
             </div>
           )}
-          {/* Name */}
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-foreground">
-              Full name
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              autoComplete="name"
-              required
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="mt-2 block w-full rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-              placeholder="Jane Doe"
-            />
-          </div>
 
-          {/* Email */}
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-foreground">
-              Email address
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              autoComplete="email"
-              required
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="mt-2 block w-full rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-              placeholder="you@example.com"
-            />
-          </div>
-
-          {/* Password */}
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-foreground">
-              Password
+              New password
             </label>
             <input
               type="password"
@@ -137,10 +100,9 @@ export default function SignupPage() {
             />
           </div>
 
-          {/* Confirm Password */}
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground">
-              Confirm password
+              Confirm new password
             </label>
             <input
               type="password"
@@ -160,14 +122,13 @@ export default function SignupPage() {
             disabled={loading}
             className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
           >
-            {loading ? 'Creating account…' : 'Create account'}
+            {loading ? 'Updating password…' : 'Update password'}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          Already have an account?{' '}
           <Link href="/login" className="font-medium text-primary hover:text-primary/90">
-            Log in
+            &larr; Back to login
           </Link>
         </p>
       </div>
