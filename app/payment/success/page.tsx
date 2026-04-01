@@ -52,7 +52,7 @@ export default function PaymentSuccessPage() {
     return () => {
       mounted = false;
     };
-  }, [refreshStatus, sessionId, setStatus]);
+  }, [sessionId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="mx-auto mb-16 mt-16 max-w-lg rounded-xl border bg-background p-8 shadow">
