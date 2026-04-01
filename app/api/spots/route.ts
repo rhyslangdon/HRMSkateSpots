@@ -41,6 +41,12 @@ export async function PATCH(request: NextRequest) {
         { status: 401 }
       );
     }
+    if (!user.email_confirmed_at) {
+      return NextResponse.json(
+        { error: 'Forbidden', message: 'Please verify your email address before editing spots.' },
+        { status: 403 }
+      );
+    }
     const body = await request.json();
     const { id, ...updateData } = body;
     if (!id) {
@@ -114,6 +120,12 @@ export async function DELETE(request: NextRequest) {
         { status: 401 }
       );
     }
+    if (!user.email_confirmed_at) {
+      return NextResponse.json(
+        { error: 'Forbidden', message: 'Please verify your email address before deleting spots.' },
+        { status: 403 }
+      );
+    }
     const body = await request.json();
     const { id } = body;
     if (!id) {
@@ -181,6 +193,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Unauthorized', message: 'You must be logged in to add a spot.' },
         { status: 401 }
+      );
+    }
+
+    if (!user.email_confirmed_at) {
+      return NextResponse.json(
+        { error: 'Forbidden', message: 'Please verify your email address before adding spots.' },
+        { status: 403 }
       );
     }
 
