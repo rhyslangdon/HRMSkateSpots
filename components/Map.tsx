@@ -50,6 +50,7 @@ export default function Map() {
   const [hiddenFeatures, setHiddenFeatures] = useState<Set<StreetFeature>>(new Set());
   const [hiddenDifficulties, setHiddenDifficulties] = useState<Set<Difficulty>>(new Set());
   const [showFavouritesOnly, setShowFavouritesOnly] = useState(false);
+  const [expandedImage, setExpandedImage] = useState<{ url: string; name: string } | null>(null);
 
   // Favourites logic
   const { addFavourite, removeFavourite, isFavourite } = useFavourites(userId);
@@ -225,6 +226,22 @@ export default function Map() {
     setPendingPosition(null);
   }
 
+  function openImagePreview(imageUrl: string, spotName: string) {
+    setExpandedImage({ url: imageUrl, name: spotName });
+  }
+
+  function closeImagePreview() {
+    setExpandedImage(null);
+  }
+
+  function getImageDownloadHref(imageUrl: string, spotName: string) {
+    const params = new URLSearchParams({
+      url: imageUrl,
+      name: spotName,
+    });
+    return `/api/download-image?${params.toString()}`;
+  }
+
   const pendingMarkerRef = useCallback((marker: L.Marker | null) => {
     if (marker) marker.openPopup();
   }, []);
@@ -314,16 +331,25 @@ export default function Map() {
               <Popup minWidth={220} maxWidth={280}>
                 <div className="flex flex-col gap-2">
                   {spot.image_url && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={spot.image_url}
-                      alt={spot.name}
-                      className="h-32 w-full rounded object-cover"
-                    />
-                  )}
-                  <p className="text-sm font-semibold text-foreground">{spot.name}</p>
-                  {spot.description && (
-                    <p className="text-xs text-muted-foreground">{spot.description}</p>
+                    <button
+                      type="button"
+                      className="p-0 border-0 bg-transparent h-32 w-full cursor-pointer rounded object-cover focus:outline-none"
+                      onClick={() => openImagePreview(spot.image_url as string, spot.name)}
+                      title="Click to view larger"
+                      aria-label="View larger image"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          openImagePreview(spot.image_url as string, spot.name);
+                        }
+                      }}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={spot.image_url}
+                        alt={spot.name}
+                        className="h-32 w-full rounded object-cover"
+                      />
+                    </button>
                   )}
                   <div className="flex flex-wrap gap-1">
                     <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700">
@@ -433,6 +459,49 @@ export default function Map() {
           ))}
         </MapContainer>
       </div>
+      {expandedImage && (
+        <div
+          className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              closeImagePreview();
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label="Close image preview"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              closeImagePreview();
+            }
+          }}
+        >
+          <div className="flex w-full max-w-3xl flex-col gap-3 rounded-lg bg-background p-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={expandedImage.url}
+              alt={expandedImage.name}
+              className="max-h-[75vh] w-full rounded object-contain"
+            />
+            <div className="flex items-center justify-end gap-2">
+              <a
+                href={getImageDownloadHref(expandedImage.url, expandedImage.name)}
+                download
+                className="rounded bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                Download image
+              </a>
+              <button
+                type="button"
+                onClick={closeImagePreview}
+                className="rounded border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-muted"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
