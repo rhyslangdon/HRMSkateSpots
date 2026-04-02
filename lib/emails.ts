@@ -1,5 +1,19 @@
+/**
+ * EMAIL TEMPLATES — Pre-built email functions for specific app events.
+ *
+ * Each function builds an HTML email and calls sendEmail() from lib/email.ts.
+ * These are "transactional emails" — triggered by user actions, not marketing.
+ *
+ * WHEN EACH EMAIL IS SENT:
+ *   sendPremiumWelcomeEmail()  → called in /api/checkout/confirm after Stripe payment succeeds
+ *   sendDowngradeEmail()       → called in /api/subscription/downgrade after cancelling Stripe sub
+ */
 import { sendEmail } from '@/lib/email';
 
+/**
+ * Sent when a user successfully upgrades to Premium via Stripe checkout.
+ * Includes a summary of what they now have access to.
+ */
 export async function sendPremiumWelcomeEmail(to: string, name?: string | null) {
   const greeting = name ? `Hey ${name},` : 'Hey there,';
   await sendEmail({
@@ -25,6 +39,10 @@ export async function sendPremiumWelcomeEmail(to: string, name?: string | null) 
   });
 }
 
+/**
+ * Sent when a user cancels their Premium subscription.
+ * Lets them know they're back on the free plan and can re-subscribe.
+ */
 export async function sendDowngradeEmail(to: string, name?: string | null) {
   const greeting = name ? `Hey ${name},` : 'Hey there,';
   await sendEmail({

@@ -1,3 +1,17 @@
+/**
+ * FORGOT PASSWORD PAGE — Step 1 of the password reset flow.
+ *
+ * THE FULL PASSWORD RESET FLOW:
+ *   Step 1: /forgot-password (THIS PAGE) — user enters email
+ *   Step 2: Supabase sends a password reset email with a magic link
+ *   Step 3: User clicks link → /auth/callback?next=/reset-password
+ *   Step 4: callback/route.ts exchanges the code for a session
+ *   Step 5: User is redirected to /reset-password with an active session
+ *   Step 6: /reset-password page lets them set a new password
+ *
+ * NOTE: Supabase sends the reset email — NOT our nodemailer/Gmail SMTP.
+ *       (Unless you configure custom SMTP in Supabase Dashboard.)
+ */
 'use client';
 
 import { useState } from 'react';
@@ -16,6 +30,12 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     const supabase = createClient();
+
+    // Ask Supabase to send a password reset email.
+    // redirectTo tells Supabase: "after the user clicks the reset link,
+    // send them to /auth/callback with ?next=/reset-password".
+    // The callback will exchange the code for a session, then redirect
+    // to /reset-password where the user can enter a new password.
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
     });

@@ -1,3 +1,20 @@
+/**
+ * RESET PASSWORD PAGE — Step 6 (final step) of the password reset flow.
+ *
+ * HOW THE USER GETS HERE:
+ * 1. They clicked "Forgot password?" on the login page
+ * 2. They entered their email on /forgot-password
+ * 3. Supabase sent them a reset email with a magic link
+ * 4. They clicked the link → /auth/callback?next=/reset-password
+ * 5. callback/route.ts exchanged the code for a session (user is now logged in)
+ * 6. They were redirected HERE with an active session
+ *
+ * WHAT THIS PAGE DOES:
+ * - Shows a form for new password + confirm password
+ * - Calls supabase.auth.updateUser({ password }) to change the password
+ * - This works because the user already has a session from the callback
+ * - No email is sent from this page — it just updates the password in Supabase
+ */
 'use client';
 
 import { useState } from 'react';
@@ -32,6 +49,11 @@ export default function ResetPasswordPage() {
     setLoading(true);
 
     const supabase = createClient();
+
+    // Update the user's password in Supabase.
+    // This works because the user already has an active session
+    // (established when they clicked the reset link and hit /auth/callback).
+    // No email is sent here — this just changes the password.
     const { error } = await supabase.auth.updateUser({
       password: formData.password,
     });
