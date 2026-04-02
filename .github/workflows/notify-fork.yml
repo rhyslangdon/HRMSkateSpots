@@ -13,5 +13,5 @@ jobs:
           curl -X POST \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.FORK_SYNC_PAT }}" \
-            https://api.github.com/repos/SBraden04/nscc-itc-winter2026-webd3031-project-Project-NextJS-StarterTemplate/dispatches \
+            https://api.github.com/repos/SBraden04/project-hrm-skate-spots/dispatches \
             -d '{"event_type":"upstream-sync"}'
