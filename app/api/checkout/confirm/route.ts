@@ -1,3 +1,13 @@
+/**
+ * CHECKOUT CONFIRM API — Called after the user returns from Stripe checkout.
+ *
+ * FLOW:
+ * 1. Frontend sends the Stripe sessionId to this route
+ * 2. We verify the payment was successful with Stripe
+ * 3. We verify the payment belongs to the logged-in user
+ * 4. We update the user's profile to 'premium' in Supabase
+ * 5. We send a welcome email via our Gmail SMTP (lib/emails.ts)
+ */
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@/lib/supabase/server';
@@ -68,10 +78,13 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
+    // Send the "Welcome to Premium" email via our Gmail SMTP.
+    // Wrapped in try/catch so if email fails, the upgrade still succeeds.
+    // The user's subscription is already active at this point.
     try {
       await sendPremiumWelcomeEmail(user.email!, profile?.display_name);
     } catch {
-      // Email failure should not block the upgrade
+      // Email failure should not block the upgrade — the payment already went through
     }
 
     return NextResponse.json({ ok: true });

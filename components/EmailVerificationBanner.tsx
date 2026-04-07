@@ -1,3 +1,22 @@
+/**
+ * EMAIL VERIFICATION BANNER — Yellow banner shown to users who haven't verified their email.
+ *
+ * WHERE IT SHOWS: Rendered in app/layout.tsx, right below the Navbar, so it appears on every page.
+ *
+ * HOW IT WORKS:
+ * 1. On mount, checks if the logged-in user's email_confirmed_at is null
+ *    (Supabase sets this timestamp when the user clicks the verification link)
+ * 2. If unverified → shows the yellow banner with a "Resend verification email" button
+ * 3. Listens for auth state changes so if the user verifies in another tab,
+ *    the banner auto-hides without a page refresh
+ * 4. The "Resend" button calls supabase.auth.resend() which tells Supabase
+ *    to send another verification email (Supabase handles the sending)
+ *
+ * WHAT HAPPENS IF THEY DON'T VERIFY:
+ * - They can still browse the site and see spots on the map
+ * - But API routes (spots POST/PATCH/DELETE, checkout) will reject their requests
+ *   with a 403 "Please verify your email" error
+ */
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -11,12 +30,16 @@ export default function EmailVerificationBanner() {
   useEffect(() => {
     const supabase = createClient();
 
+    // Check on page load: is the current user's email unverified?
+    // email_confirmed_at is null until they click the verification link.
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user && !user.email_confirmed_at) {
         setShowBanner(true);
       }
     });
 
+    // Listen for real-time auth changes (e.g., user verifies in another tab).
+    // This auto-hides the banner without needing a page refresh.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -39,6 +62,9 @@ export default function EmailVerificationBanner() {
     } = await supabase.auth.getUser();
 
     if (user?.email) {
+      // Tell Supabase to resend the verification email.
+      // type: 'signup' means "resend the original sign-up confirmation email".
+      // Supabase sends this email — NOT our nodemailer/Gmail code.
       await supabase.auth.resend({
         type: 'signup',
         email: user.email,

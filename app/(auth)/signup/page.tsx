@@ -1,3 +1,16 @@
+/**
+ * SIGN-UP PAGE — Creates a new account and triggers email verification.
+ *
+ * HOW EMAIL VERIFICATION WORKS:
+ * 1. User fills out the form and clicks "Create account"
+ * 2. We call supabase.auth.signUp() with emailRedirectTo option
+ * 3. Supabase sends a verification email with a magic link to the user
+ *    (Supabase handles the email sending — NOT our nodemailer code)
+ * 4. User sees a "Check your email" screen
+ * 5. When user clicks the link in the email → goes to /auth/callback
+ * 6. callback/route.ts exchanges the code for a session → redirects to /dashboard
+ * 7. The user's email_confirmed_at field gets set, and the yellow banner disappears
+ */
 'use client';
 
 import { useState } from 'react';
@@ -32,14 +45,19 @@ export default function SignupPage() {
     setLoading(true);
 
     const supabase = createClient();
+
+    // Call Supabase to create the account.
+    // emailRedirectTo tells Supabase: "when the user clicks the verification link
+    // in the email, redirect them to /auth/callback on our site."
+    // Supabase sends the email automatically — we don't use nodemailer here.
     const { error } = await supabase.auth.signUp({
       email: formData.email,
       password: formData.password,
       options: {
         data: {
-          display_name: formData.name,
+          display_name: formData.name, // Stored in Supabase user metadata
         },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${window.location.origin}/auth/callback`, // Where the email link goes
       },
     });
 

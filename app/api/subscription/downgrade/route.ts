@@ -1,3 +1,12 @@
+/**
+ * DOWNGRADE API — Cancels the user's Stripe subscription and downgrades to free.
+ *
+ * FLOW:
+ * 1. Find the user's Stripe customer by email
+ * 2. Cancel all active subscriptions in Stripe
+ * 3. Update the user's profile to 'free' in Supabase
+ * 4. Send a downgrade notification email via our Gmail SMTP
+ */
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@/lib/supabase/server';
@@ -74,10 +83,12 @@ export async function POST() {
       .eq('id', user.id)
       .single();
 
+    // Send the "Subscription Cancelled" email via our Gmail SMTP.
+    // Wrapped in try/catch so if email fails, the downgrade still completes.
     try {
       await sendDowngradeEmail(user.email, profile?.display_name);
     } catch {
-      // Email failure should not block the downgrade
+      // Email failure should not block the downgrade — cancellation already happened
     }
 
     return NextResponse.json({ ok: true, canceledSubscriptions });
