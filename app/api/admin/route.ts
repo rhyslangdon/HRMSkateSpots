@@ -89,7 +89,7 @@ export async function POST(request: Request) {
           : 'User promoted to admin successfully.',
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to promote user.';
+    const message = error instanceof Error ? error.message : 'Failed to update user role.';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
