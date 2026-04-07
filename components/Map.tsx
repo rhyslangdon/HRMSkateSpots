@@ -330,6 +330,7 @@ export default function Map() {
             >
               <Popup minWidth={220} maxWidth={280}>
                 <div className="flex flex-col gap-2">
+                  <strong className="text-sm">{spot.name}</strong>
                   {spot.image_url && (
                     <button
                       type="button"
