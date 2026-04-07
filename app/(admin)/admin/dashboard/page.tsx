@@ -25,6 +25,7 @@
 import type { Metadata } from 'next';
 import { requireAdmin } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
+import PromoteUserButton from '@/components/PromoteUserButton';
 import type { Profile } from '@/types';
 
 export const metadata: Metadata = {
@@ -189,8 +190,11 @@ export default async function AdminDashboardPage() {
                     <th className="whitespace-nowrap pb-3 pr-4 font-medium text-muted-foreground">
                       Plan
                     </th>
-                    <th className="whitespace-nowrap pb-3 font-medium text-muted-foreground">
+                    <th className="whitespace-nowrap pb-3 pr-4 font-medium text-muted-foreground">
                       Joined
+                    </th>
+                    <th className="whitespace-nowrap pb-3 font-medium text-muted-foreground">
+                      Action
                     </th>
                   </tr>
                 </thead>
@@ -225,8 +229,15 @@ export default async function AdminDashboardPage() {
                           {user.subscription_status}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap py-3 text-muted-foreground">
+                      <td className="whitespace-nowrap py-3 pr-4 text-muted-foreground">
                         {new Date(user.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="whitespace-nowrap py-3">
+                        <PromoteUserButton
+                          userId={user.id}
+                          email={user.email}
+                          isAdmin={user.role === 'admin'}
+                        />
                       </td>
                     </tr>
                   ))}
