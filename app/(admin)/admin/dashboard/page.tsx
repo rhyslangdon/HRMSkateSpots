@@ -25,7 +25,7 @@
 import type { Metadata } from 'next';
 import { requireAdmin } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
-import PromoteUserButton from '@/components/PromoteUserButton';
+import AdminUsersTable from '@/components/AdminUsersTable';
 import type { Profile } from '@/types';
 
 export const metadata: Metadata = {
@@ -171,80 +171,7 @@ export default async function AdminDashboardPage() {
         {/* --- All Users Table --- */}
         <div className="mt-8 rounded-xl border border-border bg-background p-6">
           <h2 className="text-xl font-semibold text-foreground">All Users</h2>
-          {users.length === 0 ? (
-            <p className="mt-4 text-sm text-muted-foreground">No users found.</p>
-          ) : (
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="whitespace-nowrap pb-3 pr-4 font-medium text-muted-foreground">
-                      Name
-                    </th>
-                    <th className="whitespace-nowrap pb-3 pr-4 font-medium text-muted-foreground">
-                      Email
-                    </th>
-                    <th className="whitespace-nowrap pb-3 pr-4 font-medium text-muted-foreground">
-                      Role
-                    </th>
-                    <th className="whitespace-nowrap pb-3 pr-4 font-medium text-muted-foreground">
-                      Plan
-                    </th>
-                    <th className="whitespace-nowrap pb-3 pr-4 font-medium text-muted-foreground">
-                      Joined
-                    </th>
-                    <th className="whitespace-nowrap pb-3 font-medium text-muted-foreground">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((user) => (
-                    <tr key={user.id} className="border-b border-border last:border-0">
-                      <td className="whitespace-nowrap py-3 pr-4 text-foreground">
-                        {user.display_name || '—'}
-                      </td>
-                      <td className="whitespace-nowrap py-3 pr-4 text-muted-foreground">
-                        {user.email}
-                      </td>
-                      <td className="whitespace-nowrap py-3 pr-4">
-                        <span
-                          className={`rounded-full px-2 py-1 text-xs font-medium ${
-                            user.role === 'admin'
-                              ? 'bg-primary/10 text-primary'
-                              : 'bg-muted text-muted-foreground'
-                          }`}
-                        >
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap py-3 pr-4">
-                        <span
-                          className={`rounded-full px-2 py-1 text-xs font-medium ${
-                            user.subscription_status === 'premium'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-muted text-muted-foreground'
-                          }`}
-                        >
-                          {user.subscription_status}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap py-3 pr-4 text-muted-foreground">
-                        {new Date(user.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="whitespace-nowrap py-3">
-                        <PromoteUserButton
-                          userId={user.id}
-                          email={user.email}
-                          isAdmin={user.role === 'admin'}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <AdminUsersTable users={users} />
         </div>
       </div>
     </div>
