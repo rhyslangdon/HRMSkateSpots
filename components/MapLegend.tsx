@@ -77,7 +77,9 @@ export default function MapLegend({
               type="button"
               onClick={() => onToggleType(type)}
               className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-all hover:bg-muted ${
-                isHidden ? 'border-border opacity-40' : 'border-primary/30 bg-primary/10'
+                isHidden
+                  ? 'border-border bg-background text-muted-foreground'
+                  : 'border-primary/30 bg-primary/10 text-foreground'
               }`}
               aria-pressed={!isHidden}
               aria-label={`${isHidden ? 'Show' : 'Hide'} ${label} spots`}
@@ -138,8 +140,8 @@ export default function MapLegend({
                   onClick={() => onToggleDifficulty(difficulty)}
                   className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-all hover:ring-1 hover:ring-primary/40 ${
                     isHidden
-                      ? 'bg-muted text-muted-foreground opacity-50'
-                      : 'bg-primary/15 text-primary'
+                      ? 'border border-border bg-background text-muted-foreground'
+                      : 'bg-primary/15 text-foreground'
                   }`}
                   aria-pressed={!isHidden}
                   aria-label={`${isHidden ? 'Show' : 'Hide'} ${formatLabel(difficulty)} spots`}
@@ -167,8 +169,8 @@ export default function MapLegend({
                     onClick={() => onToggleFeature(feature)}
                     className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-all hover:ring-1 hover:ring-primary/40 ${
                       isHidden
-                        ? 'bg-muted text-muted-foreground opacity-50'
-                        : 'bg-purple-100 text-purple-700'
+                        ? 'border border-border bg-background text-muted-foreground'
+                        : 'bg-purple-100 text-foreground'
                     }`}
                     aria-pressed={!isHidden}
                     aria-label={`${isHidden ? 'Show' : 'Hide'} ${formatLabel(feature)} street spots`}
