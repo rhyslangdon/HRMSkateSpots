@@ -37,6 +37,7 @@ export async function POST(request: Request) {
 
     const admin = createServiceRoleClient();
 
+    // fetching target user by email to get their id and current role
     const { data: targetProfile, error: targetProfileError } = await admin
       .from('profiles')
       .select('id, role')
@@ -69,6 +70,7 @@ export async function POST(request: Request) {
       );
     }
 
+    // updating user role if they are user or admin
     const nextRole = action === 'demote' ? 'user' : 'admin';
     const { error: updateError } = await admin
       .from('profiles')
