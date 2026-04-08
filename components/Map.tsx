@@ -315,15 +315,15 @@ export default function Map() {
           onHideAll={handleHideAll}
         />
       </div>
-      <div className="flex items-center gap-2">
-        <form onSubmit={handleSearch} className="flex flex-1 gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <form onSubmit={handleSearch} className="flex min-w-0 flex-1 gap-2">
           <input
             ref={searchInputRef}
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search a location (e.g. Halifax Commons)"
-            className="flex-1 rounded border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="min-w-0 flex-1 rounded border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
           <button
             type="submit"
