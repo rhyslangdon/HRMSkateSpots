@@ -1,4 +1,27 @@
 import type { NextConfig } from 'next';
+import nextPWA from 'next-pwa';
+
+const withPWA = nextPWA({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === 'development',
+  runtimeCaching: [
+    {
+      urlPattern: /^https?.*/,
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'offlineCache',
+        networkTimeoutSeconds: 10,
+        expiration: { maxEntries: 200 },
+        cacheableResponse: { statuses: [0, 200] },
+      },
+    },
+  ],
+  fallbacks: {
+    document: '/offline.html',
+  },
+});
 
 const nextConfig: NextConfig = {
   images: {
@@ -12,4 +35,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withPWA(nextConfig);

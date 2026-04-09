@@ -28,6 +28,7 @@ import UnauthorizedToast from '@/components/UnauthorizedToast';
 import EmailVerificationBanner from '@/components/EmailVerificationBanner';
 import { SubscriptionProvider } from '@/components/SubscriptionContext';
 import { ThemeProvider } from '@/components/ThemeContext';
+import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration';
 
 // --- Font Configuration ---
 // next/font automatically optimizes fonts — no external requests at runtime.
@@ -57,6 +58,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <body className="font-sans antialiased" suppressHydrationWarning>
+        <ServiceWorkerRegistration />
         <ThemeProvider>
           <SubscriptionProvider>
             <Navbar />

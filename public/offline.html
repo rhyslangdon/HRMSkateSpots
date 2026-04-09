@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>You're Offline | HRM Skate Spots</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #ffffff;
+        --fg: #171717;
+        --primary: #2563eb;
+        --muted: #f5f5f5;
+        --muted-fg: #737373;
+        --border: #e5e5e5;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0a0a0a;
+          --fg: #ededed;
+          --primary: #3b82f6;
+          --muted: #262626;
+          --muted-fg: #a3a3a3;
+          --border: #404040;
+        }
+      }
+
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--bg);
+        color: var(--fg);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        text-align: center;
+      }
+
+      .icon {
+        font-size: 5rem;
+        line-height: 1;
+        margin-bottom: 1.5rem;
+        user-select: none;
+      }
+
+      h1 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+      }
+
+      p {
+        font-size: 1rem;
+        color: var(--muted-fg);
+        max-width: 360px;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+      }
+
+      .btn {
+        display: inline-block;
+        background-color: var(--primary);
+        color: #ffffff;
+        font-size: 0.9375rem;
+        font-weight: 500;
+        padding: 0.625rem 1.5rem;
+        border-radius: 0.5rem;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        transition: opacity 0.15s ease;
+      }
+
+      .btn:hover {
+        opacity: 0.85;
+      }
+
+      .btn:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 3px;
+      }
+
+      footer {
+        position: fixed;
+        bottom: 1.25rem;
+        font-size: 0.8125rem;
+        color: var(--muted-fg);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="icon" aria-hidden="true">🛹</div>
+    <h1>You're offline</h1>
+    <p>Looks like you've lost your connection. Check your internet and try again.</p>
+    <button class="btn" onclick="window.location.reload()">Try again</button>
+    <footer>HRM Skate Spots</footer>
+  </body>
+</html>
