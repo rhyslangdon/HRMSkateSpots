@@ -119,6 +119,7 @@ Open [http://localhost:3000](http://localhost:3000) to see your app.
 | [docs/payments.md](docs/payments.md)                       | Payment integration guide (Stripe)                |
 | [docs/admin-guide.md](docs/admin-guide.md)                 | Admin dashboard and RBAC guide                    |
 | [docs/component-libraries.md](docs/component-libraries.md) | UI component library comparison                   |
+| [docs/security-csp.md](docs/security-csp.md)                       | CSP directives and security rationale             |
 | [docs/enhancements.md](docs/enhancements.md)               | Stretch goals quick reference                     |
 
 ## Contributing

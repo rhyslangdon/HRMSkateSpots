@@ -7,10 +7,17 @@ import { NextResponse, type NextRequest } from 'next/server';
  *
  * Call this from your proxy.ts file.
  */
-export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+export async function updateSession(request: NextRequest, requestHeaders?: Headers) {
+  const nextResponse = () =>
+    requestHeaders
+      ? NextResponse.next({
+          request: { headers: requestHeaders },
+        })
+      : NextResponse.next({
+          request,
+        });
+
+  let supabaseResponse = nextResponse();
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -29,9 +36,7 @@ export async function updateSession(request: NextRequest) {
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-        supabaseResponse = NextResponse.next({
-          request,
-        });
+        supabaseResponse = nextResponse();
         cookiesToSet.forEach(({ name, value, options }) =>
           supabaseResponse.cookies.set(name, value, options)
         );
