@@ -28,6 +28,27 @@ export default function AdminUsersTable({ users }: Props) {
     });
   }, [users, roleFilter, planFilter, search]);
 
+  function exportToCSV() {
+    const headers = ['Name', 'Email', 'Role', 'Plan', 'Joined'];
+    const rows = filtered.map((u) => [
+      u.display_name ?? '',
+      u.email,
+      u.role,
+      u.subscription_status,
+      new Date(u.created_at).toLocaleDateString(),
+    ]);
+    const csv = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'users-export.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div>
       {/* Filters */}
@@ -69,6 +90,13 @@ export default function AdminUsersTable({ users }: Props) {
             Clear
           </button>
         )}
+        <button
+          onClick={exportToCSV}
+          disabled={filtered.length === 0}
+          className="ml-auto rounded border border-border px-3 py-1.5 text-sm text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Export CSV ({filtered.length})
+        </button>
       </div>
 
       {/* Table */}
