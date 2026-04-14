@@ -170,7 +170,7 @@ export default function MapLegend({
                     className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-all hover:ring-1 hover:ring-primary/40 ${
                       isHidden
                         ? 'border border-border bg-background text-muted-foreground'
-                        : 'bg-purple-100 text-foreground'
+                        : 'bg-primary/15 text-foreground'
                     }`}
                     aria-pressed={!isHidden}
                     aria-label={`${isHidden ? 'Show' : 'Hide'} ${formatLabel(feature)} street spots`}
