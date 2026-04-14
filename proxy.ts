@@ -21,8 +21,8 @@ function buildContentSecurityPolicy(nonce: string) {
     ? `script-src-elem 'self' 'nonce-${nonce}' 'strict-dynamic' https://js.stripe.com`
     : "script-src-elem 'self' 'unsafe-inline' https://js.stripe.com";
   const connectSrc = isProduction
-    ? "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org https://fonts.googleapis.com https://*.basemaps.cartocdn.com"
-    : "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org https://fonts.googleapis.com https://*.basemaps.cartocdn.com ws: wss: http://localhost:* https://localhost:*";
+    ? "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org https://fonts.googleapis.com https://fonts.gstatic.com https://*.basemaps.cartocdn.com"
+    : "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org https://fonts.googleapis.com https://fonts.gstatic.com https://*.basemaps.cartocdn.com ws: wss: http://localhost:* https://localhost:*";
 
   const directives = [
     "default-src 'self'",
