@@ -148,3 +148,24 @@ body {
   border-radius: 0.35rem;
   filter: invert(1);
 }
+
+/* Spot popup: make all content readable in both themes */
+.spot-popup .leaflet-popup-content {
+  margin: 0;
+  color: var(--foreground);
+}
+
+.spot-popup .leaflet-popup-content-wrapper {
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+}
+
+.spot-popup .leaflet-popup-close-button {
+  color: var(--foreground);
+}
+
+[data-theme='dark'] .spot-popup .leaflet-popup-content-wrapper,
+[data-theme='dark'] .spot-popup .leaflet-popup-tip {
+  background: color-mix(in srgb, var(--background) 95%, var(--muted) 5%);
+}
