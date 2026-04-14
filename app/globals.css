@@ -109,6 +109,42 @@ body {
   color: var(--foreground);
 }
 
+.leaflet-control-layers-base label,
+.leaflet-control-layers-overlays label {
+  font-size: 0.8125rem;
+  line-height: 1.3;
+}
+
+.leaflet-control-layers input[type='radio'],
+.leaflet-control-layers input[type='checkbox'] {
+  accent-color: var(--primary);
+}
+
 [data-theme='dark'] .leaflet-control-attribution {
   background: color-mix(in srgb, var(--background) 92%, transparent);
+}
+
+[data-theme='dark'] .leaflet-control-layers {
+  background: color-mix(in srgb, var(--background) 94%, var(--muted) 6%);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.45);
+}
+
+[data-theme='dark'] .leaflet-control-layers-expanded {
+  color: var(--foreground);
+}
+
+[data-theme='dark'] .leaflet-control-layers-list label {
+  color: var(--foreground);
+}
+
+[data-theme='dark'] .leaflet-control-layers-separator {
+  border-top-color: var(--border);
+}
+
+[data-theme='dark'] .leaflet-control-layers-toggle {
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 0.35rem;
+  filter: invert(1);
 }

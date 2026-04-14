@@ -142,11 +142,11 @@ export default function FinderPage() {
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-foreground">{spot.name}</span>
                     <div className="flex gap-1">
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground capitalize">
+                      <span className="rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground capitalize">
                         {spot.spot_type}
                       </span>
                       {spot.street_feature && (
-                        <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground capitalize">
+                        <span className="rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground capitalize">
                           {spot.street_feature}
                         </span>
                       )}
