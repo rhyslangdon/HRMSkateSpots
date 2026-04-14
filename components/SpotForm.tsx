@@ -135,14 +135,18 @@ export default function SpotForm({
     <form
       onSubmit={handleSubmit}
       onClick={(e) => e.stopPropagation()}
-      className="flex w-56 flex-col gap-1.5 p-1"
+      className="flex w-56 flex-col gap-1.5 p-1 bg-[var(--background)] text-[var(--foreground)] rounded-md shadow"
+      style={{ background: 'var(--background)', color: 'var(--foreground)' }}
     >
       <div className="flex items-center gap-1">
         <span className="text-xs">📍</span>
-        <p className="text-xs font-bold text-gray-800">
+        <p className="text-xs font-bold" style={{ color: 'var(--foreground)' }}>
           {initialData ? 'Edit Skate Spot' : 'Add Skate Spot'}
         </p>
-        <span className="ml-auto text-[9px] text-gray-400">
+        <span
+          className="ml-auto text-[9px] text-muted-foreground"
+          style={{ color: 'var(--muted-foreground)' }}
+        >
           {latitude.toFixed(4)}, {longitude.toFixed(4)}
         </span>
       </div>
@@ -152,7 +156,12 @@ export default function SpotForm({
         placeholder="Spot name *"
         value={formData.name}
         onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-        className="rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-xs focus:border-blue-400 focus:bg-white focus:outline-none"
+        className="rounded-md border px-2 py-1 text-xs focus:border-blue-400 focus:bg-white focus:outline-none"
+        style={{
+          background: 'var(--muted)',
+          color: 'var(--foreground)',
+          borderColor: 'var(--border)',
+        }}
         maxLength={100}
         required
       />
@@ -161,7 +170,12 @@ export default function SpotForm({
         placeholder="Description (optional)"
         value={formData.description}
         onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-        className="rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-xs focus:border-blue-400 focus:bg-white focus:outline-none"
+        className="rounded-md border px-2 py-1 text-xs focus:border-blue-400 focus:bg-white focus:outline-none"
+        style={{
+          background: 'var(--muted)',
+          color: 'var(--foreground)',
+          borderColor: 'var(--border)',
+        }}
         rows={1}
         maxLength={500}
       />
@@ -171,7 +185,12 @@ export default function SpotForm({
         placeholder="Address (optional)"
         value={formData.address}
         onChange={(e) => setFormData((prev) => ({ ...prev, address: e.target.value }))}
-        className="rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-xs focus:border-blue-400 focus:bg-white focus:outline-none"
+        className="rounded-md border px-2 py-1 text-xs focus:border-blue-400 focus:bg-white focus:outline-none"
+        style={{
+          background: 'var(--muted)',
+          color: 'var(--foreground)',
+          borderColor: 'var(--border)',
+        }}
         maxLength={200}
       />
 
@@ -185,7 +204,12 @@ export default function SpotForm({
               street_feature: e.target.value === 'street' ? prev.street_feature : null,
             }))
           }
-          className="rounded-md border border-gray-200 bg-gray-50 px-1.5 py-1 text-xs focus:border-blue-400 focus:bg-white focus:outline-none"
+          className="rounded-md border px-1.5 py-1 text-xs focus:border-blue-400 focus:bg-white focus:outline-none"
+          style={{
+            background: 'var(--muted)',
+            color: 'var(--foreground)',
+            borderColor: 'var(--border)',
+          }}
         >
           {SPOT_TYPES.map((t) => (
             <option key={t.value} value={t.value}>
@@ -199,7 +223,12 @@ export default function SpotForm({
           onChange={(e) =>
             setFormData((prev) => ({ ...prev, difficulty: e.target.value as Difficulty }))
           }
-          className="rounded-md border border-gray-200 bg-gray-50 px-1.5 py-1 text-xs focus:border-blue-400 focus:bg-white focus:outline-none"
+          className="rounded-md border px-1.5 py-1 text-xs focus:border-blue-400 focus:bg-white focus:outline-none"
+          style={{
+            background: 'var(--muted)',
+            color: 'var(--foreground)',
+            borderColor: 'var(--border)',
+          }}
         >
           {DIFFICULTIES.map((d) => (
             <option key={d.value} value={d.value}>
@@ -218,7 +247,12 @@ export default function SpotForm({
               street_feature: (e.target.value || null) as StreetFeature | null,
             }))
           }
-          className="rounded-md border border-gray-200 bg-gray-50 px-1.5 py-1 text-xs focus:border-blue-400 focus:bg-white focus:outline-none"
+          className="rounded-md border px-1.5 py-1 text-xs focus:border-blue-400 focus:bg-white focus:outline-none"
+          style={{
+            background: 'var(--muted)',
+            color: 'var(--foreground)',
+            borderColor: 'var(--border)',
+          }}
         >
           <option value="">Feature...</option>
           {STREET_FEATURES.map((f) => (
@@ -229,7 +263,14 @@ export default function SpotForm({
         </select>
       )}
 
-      <label className="flex cursor-pointer items-center gap-1 rounded-md border border-dashed border-gray-300 bg-gray-50 px-2 py-1 text-[10px] text-gray-400 hover:border-blue-400 hover:text-blue-500">
+      <label
+        className="flex cursor-pointer items-center gap-1 rounded-md border border-dashed px-2 py-1 text-[10px] hover:border-blue-400 hover:text-blue-500"
+        style={{
+          background: 'var(--muted)',
+          color: 'var(--muted-foreground)',
+          borderColor: 'var(--border)',
+        }}
+      >
         <span>{imageFile ? `📷 ${imageFile.name}` : '📷 Upload image...'}</span>
         <input
           type="file"
@@ -249,7 +290,14 @@ export default function SpotForm({
         />
       </label>
 
-      {error && <p className="rounded bg-red-50 px-2 py-0.5 text-[10px] text-red-600">{error}</p>}
+      {error && (
+        <p
+          className="rounded px-2 py-0.5 text-[10px]"
+          style={{ background: '#fee2e2', color: '#b91c1c' }}
+        >
+          {error}
+        </p>
+      )}
 
       <div className="flex gap-1.5">
         <button
