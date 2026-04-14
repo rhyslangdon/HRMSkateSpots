@@ -5,6 +5,7 @@ import type { Spot } from '@/types';
 
 const VALID_SPOT_TYPES = ['street', 'park', 'diy', 'transition', 'flatground', 'other'] as const;
 const VALID_STREET_FEATURES = ['ledge', 'stairs', 'handrail', 'gap', 'bank', 'other'] as const;
+const GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash';
 
 function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
   const toRad = (x: number) => (x * Math.PI) / 180;
@@ -28,7 +29,7 @@ async function parseDescriptionWithAI(description: string): Promise<{
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
+  const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
 
   const prompt = `You are a skate spot classifier. A user will describe what kind of skate spots they are looking for.
 Extract which spot types and street features they want from their description.
