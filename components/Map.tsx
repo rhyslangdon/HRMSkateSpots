@@ -385,7 +385,12 @@ export default function Map() {
           <ClickHandler onMapClick={handleMapClick} />
           {pendingPosition && (
             <Marker position={pendingPosition} ref={pendingMarkerRef}>
-              <Popup eventHandlers={{ remove: handleCancelPin }} minWidth={240} maxWidth={300}>
+              <Popup
+                eventHandlers={{ remove: handleCancelPin }}
+                minWidth={240}
+                maxWidth={300}
+                className="spot-popup"
+              >
                 <SpotForm
                   latitude={pendingPosition[0]}
                   longitude={pendingPosition[1]}
@@ -402,9 +407,9 @@ export default function Map() {
               position={[spot.latitude, spot.longitude]}
               icon={createSpotDivIcon(getSpotIconName(spot))}
             >
-              <Popup minWidth={220} maxWidth={280}>
-                <div className="flex flex-col gap-2">
-                  <strong className="text-sm">{spot.name}</strong>
+              <Popup minWidth={220} maxWidth={280} className="spot-popup">
+                <div className="flex flex-col gap-2 text-foreground">
+                  <strong className="text-sm text-foreground">{spot.name}</strong>
                   {spot.description && (
                     <p className="text-xs text-muted-foreground whitespace-pre-line break-words max-w-[240px]">
                       {spot.description}
@@ -449,7 +454,7 @@ export default function Map() {
                   )}
                   {userId && (
                     <button
-                      className="ml-auto flex items-center gap-1 text-pink-600 hover:text-pink-700 focus:outline-none"
+                      className="ml-auto flex items-center gap-1 text-primary hover:text-primary/80 focus:outline-none"
                       aria-label={
                         isFavourite(spot.id) ? 'Remove from favourites' : 'Add to favourites'
                       }
@@ -494,17 +499,17 @@ export default function Map() {
                       )}
                     </button>
                   )}
-                  {favError && <div className="text-xs text-red-500 mt-1">{favError}</div>}
+                  {favError && <div className="mt-1 text-xs text-red-500">{favError}</div>}
                   {userId && (spot.user_id === userId || userRole === 'admin') && (
-                    <div className="flex gap-2 mt-2">
+                    <div className="mt-2 flex gap-2">
                       <button
-                        className="rounded bg-yellow-500 px-2 py-1 text-xs text-white hover:bg-yellow-600"
+                        className="rounded border border-border bg-muted px-2 py-1 text-xs text-foreground hover:bg-muted/80"
                         onClick={() => handleEditSpot(spot)}
                       >
                         Edit
                       </button>
                       <button
-                        className="rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600"
+                        className="rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
                         onClick={() => handleDeleteSpot(spot)}
                       >
                         Delete
@@ -513,7 +518,7 @@ export default function Map() {
                   )}
                   {deleteSpot && deleteSpot.id === spot.id && (
                     <div className="mt-2 flex flex-col items-center rounded border border-border bg-background p-2 shadow">
-                      <p className="text-sm mb-4">
+                      <p className="mb-4 text-sm text-foreground">
                         Are you sure you want to delete{' '}
                         <span className="font-bold">{deleteSpot.name}</span>?
                       </p>
