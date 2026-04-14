@@ -13,24 +13,35 @@ import { type NextRequest } from 'next/server';
 import { updateSession } from '@/lib/supabase/middleware';
 
 function buildContentSecurityPolicy(nonce: string) {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const scriptSrc = isProduction
+    ? `script-src 'self' 'nonce-${nonce}' https://js.stripe.com`
+    : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com";
+  const scriptSrcElem = isProduction
+    ? `script-src-elem 'self' 'nonce-${nonce}' https://js.stripe.com`
+    : "script-src-elem 'self' 'unsafe-inline' https://js.stripe.com";
+  const connectSrc = isProduction
+    ? "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org"
+    : "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org ws: wss: http://localhost:* https://localhost:*";
+
   const directives = [
     "default-src 'self'",
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
     "object-src 'none'",
-    `script-src 'self' 'nonce-${nonce}' https://js.stripe.com`,
-    `script-src-elem 'self' 'nonce-${nonce}' https://js.stripe.com`,
+    scriptSrc,
+    scriptSrcElem,
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com data:",
     "img-src 'self' data: blob: https://*.supabase.co https://unpkg.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com",
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org",
+    connectSrc,
     "worker-src 'self' blob:",
     "manifest-src 'self'",
     "media-src 'self' data: blob:",
   ];
 
-  if (process.env.NODE_ENV === 'production') {
+  if (isProduction) {
     directives.push('upgrade-insecure-requests');
   }
 
