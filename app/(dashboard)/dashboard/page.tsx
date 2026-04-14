@@ -124,10 +124,10 @@ export default async function DashboardPage() {
                     <div>
                       <p className="font-medium text-foreground">{spot.name}</p>
                       <div className="mt-1 flex gap-2">
-                        <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700">
+                        <span className="rounded-full bg-primary px-2 py-1 text-xs font-semibold text-primary-foreground">
                           {spot.spot_type}
                         </span>
-                        <span className="rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-medium text-green-700">
+                        <span className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-foreground">
                           {spot.difficulty}
                         </span>
                       </div>

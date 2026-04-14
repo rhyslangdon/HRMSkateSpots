@@ -432,15 +432,15 @@ export default function Map() {
                     </button>
                   )}
                   <div className="flex flex-wrap gap-1">
-                    <span className="rounded bg-primary/15 px-1.5 py-0.5 text-[10px] font-medium text-foreground">
+                    <span className="rounded-full bg-sky-500/60 px-2 py-1 text-xs font-medium text-white">
                       {spot.spot_type}
                     </span>
                     {spot.street_feature && (
-                      <span className="rounded bg-primary/15 px-1.5 py-0.5 text-[10px] font-medium text-foreground">
+                      <span className="rounded-full bg-purple-500/60 px-2 py-1 text-xs font-medium text-white">
                         {spot.street_feature}
                       </span>
                     )}
-                    <span className="rounded bg-primary/15 px-1.5 py-0.5 text-[10px] font-medium text-foreground">
+                    <span className="rounded-full bg-emerald-500/60 px-2 py-1 text-xs font-medium text-white">
                       {spot.difficulty}
                     </span>
                   </div>
