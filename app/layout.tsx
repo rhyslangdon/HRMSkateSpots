@@ -19,6 +19,7 @@
 
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import { headers } from 'next/headers';
 import { Suspense } from 'react';
 import { Toaster } from 'sonner';
 import './globals.css';
@@ -50,11 +51,14 @@ export const metadata: Metadata = {
   description: '[Your app description — explain what your SaaS product does]',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Reading x-nonce causes Next.js to stamp that nonce on all its
+  // internal inline scripts, satisfying the nonce-based CSP in production.
+  await headers();
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <body className="font-sans antialiased" suppressHydrationWarning>

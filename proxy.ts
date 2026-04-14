@@ -15,10 +15,10 @@ import { updateSession } from '@/lib/supabase/middleware';
 function buildContentSecurityPolicy(nonce: string) {
   const isProduction = process.env.NODE_ENV === 'production';
   const scriptSrc = isProduction
-    ? `script-src 'self' 'nonce-${nonce}' https://js.stripe.com`
+    ? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://js.stripe.com`
     : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com";
   const scriptSrcElem = isProduction
-    ? `script-src-elem 'self' 'nonce-${nonce}' https://js.stripe.com`
+    ? `script-src-elem 'self' 'nonce-${nonce}' 'strict-dynamic' https://js.stripe.com`
     : "script-src-elem 'self' 'unsafe-inline' https://js.stripe.com";
   const connectSrc = isProduction
     ? "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org"
