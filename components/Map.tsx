@@ -305,77 +305,79 @@ export default function Map() {
         />
       </div>
       {/* Location search is temporarily disabled. */}
-      <div
-        className={`relative h-[55svh] min-h-[420px] overflow-hidden rounded-xl border border-border shadow-sm sm:h-[62svh] sm:min-h-[520px] lg:h-[68svh] lg:max-h-[820px] ${
-          isSpotPanelOpen ? 'map-controls-hidden' : ''
-        }`}
-      >
-        <MapContainer
-          key={`map-${theme}`}
-          center={HRM_CENTER}
-          zoom={DEFAULT_ZOOM}
-          scrollWheelZoom={true}
-          className="h-full w-full rounded-xl"
+      <div className="relative">
+        <div
+          className={`relative h-[55svh] min-h-[420px] overflow-hidden rounded-xl border border-border shadow-sm sm:h-[62svh] sm:min-h-[520px] lg:h-[68svh] lg:max-h-[820px] ${
+            isSpotPanelOpen ? 'map-controls-hidden' : ''
+          }`}
         >
-          <LayersControl position="topright">
-            <LayersControl.BaseLayer checked={theme === 'light'} name="Simple">
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &amp; <a href="https://carto.com/">CARTO</a>'
-                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-              />
-            </LayersControl.BaseLayer>
-            <LayersControl.BaseLayer name="Standard">
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-            </LayersControl.BaseLayer>
-            <LayersControl.BaseLayer name="Light">
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &amp; <a href="https://carto.com/">CARTO</a>'
-                url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-              />
-            </LayersControl.BaseLayer>
-            <LayersControl.BaseLayer checked={theme === 'dark'} name="Dark">
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &amp; <a href="https://carto.com/">CARTO</a>'
-                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-              />
-            </LayersControl.BaseLayer>
-          </LayersControl>
-          <ClickHandler onMapClick={handleMapClick} />
-          {pendingPosition && (
-            <Marker position={pendingPosition} ref={pendingMarkerRef}>
-              <Popup
-                eventHandlers={{ remove: handleCancelPin }}
-                minWidth={260}
-                maxWidth={360}
-                className="spot-popup"
-              >
-                <SpotForm
-                  latitude={pendingPosition[0]}
-                  longitude={pendingPosition[1]}
-                  onSaved={handleSpotSaved}
-                  onCancel={handleCancelPin}
-                  {...(editingSpot ? { initialData: editingSpot } : {})}
+          <MapContainer
+            key={`map-${theme}`}
+            center={HRM_CENTER}
+            zoom={DEFAULT_ZOOM}
+            scrollWheelZoom={true}
+            className="h-full w-full rounded-xl"
+          >
+            <LayersControl position="topright">
+              <LayersControl.BaseLayer checked={theme === 'light'} name="Simple">
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &amp; <a href="https://carto.com/">CARTO</a>'
+                  url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                 />
-              </Popup>
-            </Marker>
-          )}
-          {visibleSpots.map((spot) => (
-            <Marker
-              key={spot.id}
-              position={[spot.latitude, spot.longitude]}
-              icon={createSpotDivIcon(getSpotIconName(spot))}
-              eventHandlers={{
-                click: () => handleSelectSpot(spot.id),
-              }}
-            ></Marker>
-          ))}
-        </MapContainer>
+              </LayersControl.BaseLayer>
+              <LayersControl.BaseLayer name="Standard">
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+              </LayersControl.BaseLayer>
+              <LayersControl.BaseLayer name="Light">
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &amp; <a href="https://carto.com/">CARTO</a>'
+                  url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                />
+              </LayersControl.BaseLayer>
+              <LayersControl.BaseLayer checked={theme === 'dark'} name="Dark">
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &amp; <a href="https://carto.com/">CARTO</a>'
+                  url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                />
+              </LayersControl.BaseLayer>
+            </LayersControl>
+            <ClickHandler onMapClick={handleMapClick} />
+            {pendingPosition && (
+              <Marker position={pendingPosition} ref={pendingMarkerRef}>
+                <Popup
+                  eventHandlers={{ remove: handleCancelPin }}
+                  minWidth={260}
+                  maxWidth={360}
+                  className="spot-popup"
+                >
+                  <SpotForm
+                    latitude={pendingPosition[0]}
+                    longitude={pendingPosition[1]}
+                    onSaved={handleSpotSaved}
+                    onCancel={handleCancelPin}
+                    {...(editingSpot ? { initialData: editingSpot } : {})}
+                  />
+                </Popup>
+              </Marker>
+            )}
+            {visibleSpots.map((spot) => (
+              <Marker
+                key={spot.id}
+                position={[spot.latitude, spot.longitude]}
+                icon={createSpotDivIcon(getSpotIconName(spot))}
+                eventHandlers={{
+                  click: () => handleSelectSpot(spot.id),
+                }}
+              ></Marker>
+            ))}
+          </MapContainer>
+        </div>
         {selectedSpot && (
-          <div className="pointer-events-none absolute inset-x-3 bottom-5 z-[500] sm:inset-x-auto sm:right-4 sm:top-4 sm:bottom-4 sm:w-[24rem]">
-            <div className="pointer-events-auto flex max-h-full flex-col overflow-hidden rounded-2xl border border-border bg-background/95 shadow-2xl backdrop-blur sm:h-full">
+          <div className="pointer-events-none absolute inset-x-3 bottom-4 z-[500] sm:inset-y-4 sm:right-4 sm:left-auto sm:w-[24rem]">
+            <div className="pointer-events-auto flex max-h-[75svh] flex-col overflow-hidden rounded-2xl border border-border bg-background/95 shadow-2xl backdrop-blur sm:h-full sm:max-h-none">
               <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
                 <div className="min-w-0">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
