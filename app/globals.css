@@ -106,6 +106,24 @@ body {
   font-family: var(--font-inter), Arial, Helvetica, sans-serif;
 }
 
+.app-toast {
+  width: min(92vw, 24rem);
+}
+
+.app-toast-title {
+  font-size: clamp(0.95rem, 0.9rem + 0.2vw, 1rem);
+  line-height: 1.35;
+}
+
+.app-toast-description {
+  font-size: clamp(0.84rem, 0.8rem + 0.18vw, 0.92rem);
+  line-height: 1.45;
+}
+
+.app-toast-close {
+  flex-shrink: 0;
+}
+
 /* Leaflet UI should follow app theme tokens */
 .leaflet-container {
   background: var(--muted);

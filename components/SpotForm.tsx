@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import type { BustFactor, SpotFormData, SpotType, Difficulty, StreetFeature } from '@/types';
 import { createClient } from '@/lib/supabase/client';
 
@@ -140,6 +141,12 @@ export default function SpotForm({
         return;
       }
 
+      toast.success(initialData ? 'Spot updated' : 'Spot added', {
+        description: initialData
+          ? 'Your changes were saved successfully.'
+          : 'Your new spot was added successfully.',
+      });
+
       onSaved();
     } catch {
       setError('Network error. Please try again.');
@@ -161,12 +168,12 @@ export default function SpotForm({
       style={{ background: 'var(--background)', color: 'var(--foreground)' }}
     >
       <div className="flex items-center gap-1">
-        <span className="text-xs">📍</span>
-        <p className="text-xs font-bold" style={{ color: 'var(--foreground)' }}>
+        <span className="text-sm">📍</span>
+        <p className="text-sm font-bold sm:text-base" style={{ color: 'var(--foreground)' }}>
           {initialData ? 'Edit Skate Spot' : 'Add Skate Spot'}
         </p>
         <span
-          className="ml-auto text-[9px] text-muted-foreground"
+          className="ml-auto text-[10px] text-muted-foreground sm:text-xs"
           style={{ color: 'var(--muted-foreground)' }}
         >
           {latitude.toFixed(4)}, {longitude.toFixed(4)}
@@ -178,7 +185,7 @@ export default function SpotForm({
         placeholder="Spot name *"
         value={formData.name}
         onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-        className="min-h-9 rounded-md border px-2.5 py-2 text-xs focus:border-blue-400 focus:bg-white focus:outline-none sm:min-h-0 sm:py-1.5"
+        className="min-h-9 rounded-md border px-2.5 py-2 text-sm focus:border-blue-400 focus:bg-white focus:outline-none sm:min-h-0 sm:py-1.5"
         style={{
           background: 'var(--muted)',
           color: 'var(--foreground)',
@@ -192,7 +199,7 @@ export default function SpotForm({
         placeholder="Description (optional)"
         value={formData.description}
         onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-        className="rounded-md border px-2.5 py-2 text-xs focus:border-blue-400 focus:bg-white focus:outline-none sm:py-1.5"
+        className="rounded-md border px-2.5 py-2 text-sm focus:border-blue-400 focus:bg-white focus:outline-none sm:py-1.5"
         style={{
           background: 'var(--muted)',
           color: 'var(--foreground)',
@@ -207,7 +214,7 @@ export default function SpotForm({
         placeholder="Address (optional)"
         value={formData.address}
         onChange={(e) => setFormData((prev) => ({ ...prev, address: e.target.value }))}
-        className="min-h-9 rounded-md border px-2.5 py-2 text-xs focus:border-blue-400 focus:bg-white focus:outline-none sm:min-h-0 sm:py-1.5"
+        className="min-h-9 rounded-md border px-2.5 py-2 text-sm focus:border-blue-400 focus:bg-white focus:outline-none sm:min-h-0 sm:py-1.5"
         style={{
           background: 'var(--muted)',
           color: 'var(--foreground)',
@@ -226,7 +233,7 @@ export default function SpotForm({
               street_feature: e.target.value === 'street' ? prev.street_feature : null,
             }))
           }
-          className="min-h-9 rounded-md border px-2 py-2 text-xs focus:border-blue-400 focus:bg-white focus:outline-none sm:min-h-0 sm:py-1.5"
+          className="min-h-9 rounded-md border px-2 py-2 text-sm focus:border-blue-400 focus:bg-white focus:outline-none sm:min-h-0 sm:py-1.5"
           style={{
             background: 'var(--muted)',
             color: 'var(--foreground)',
@@ -245,7 +252,7 @@ export default function SpotForm({
           onChange={(e) =>
             setFormData((prev) => ({ ...prev, difficulty: e.target.value as Difficulty }))
           }
-          className="min-h-9 rounded-md border px-2 py-2 text-xs focus:border-blue-400 focus:bg-white focus:outline-none sm:min-h-0 sm:py-1.5"
+          className="min-h-9 rounded-md border px-2 py-2 text-sm focus:border-blue-400 focus:bg-white focus:outline-none sm:min-h-0 sm:py-1.5"
           style={{
             background: 'var(--muted)',
             color: 'var(--foreground)',
@@ -264,7 +271,7 @@ export default function SpotForm({
           onChange={(e) =>
             setFormData((prev) => ({ ...prev, bust_factor: Number(e.target.value) as BustFactor }))
           }
-          className="min-h-9 rounded-md border px-2 py-2 text-xs focus:border-blue-400 focus:bg-white focus:outline-none sm:min-h-0 sm:py-1.5"
+          className="min-h-9 rounded-md border px-2 py-2 text-sm focus:border-blue-400 focus:bg-white focus:outline-none sm:min-h-0 sm:py-1.5"
           style={{
             background: 'var(--muted)',
             color: 'var(--foreground)',
@@ -288,7 +295,7 @@ export default function SpotForm({
               street_feature: (e.target.value || null) as StreetFeature | null,
             }))
           }
-          className="min-h-9 rounded-md border px-2 py-2 text-xs focus:border-blue-400 focus:bg-white focus:outline-none sm:min-h-0 sm:py-1.5"
+          className="min-h-9 rounded-md border px-2 py-2 text-sm focus:border-blue-400 focus:bg-white focus:outline-none sm:min-h-0 sm:py-1.5"
           style={{
             background: 'var(--muted)',
             color: 'var(--foreground)',
@@ -305,7 +312,7 @@ export default function SpotForm({
       )}
 
       <label
-        className="flex min-h-9 cursor-pointer items-center gap-1 rounded-md border border-dashed px-2.5 py-2 text-[10px] hover:border-blue-400 hover:text-blue-500 sm:min-h-0 sm:py-1.5"
+        className="flex min-h-9 cursor-pointer items-center gap-1 rounded-md border border-dashed px-2.5 py-2 text-xs hover:border-blue-400 hover:text-blue-500 sm:min-h-0 sm:py-1.5"
         style={{
           background: 'var(--muted)',
           color: 'var(--muted-foreground)',
@@ -333,7 +340,7 @@ export default function SpotForm({
 
       {error && (
         <p
-          className="rounded px-2 py-0.5 text-[10px]"
+          className="rounded px-2 py-0.5 text-xs"
           style={{ background: '#fee2e2', color: '#b91c1c' }}
         >
           {error}
@@ -345,7 +352,7 @@ export default function SpotForm({
           type="submit"
           disabled={submitting}
           onClick={(e) => e.stopPropagation()}
-          className="min-h-9 flex-1 rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-50 sm:min-h-0 sm:py-1.5"
+          className="min-h-9 flex-1 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 sm:min-h-0 sm:py-1.5"
         >
           {submitting ? 'Saving...' : 'Save'}
         </button>
@@ -355,7 +362,7 @@ export default function SpotForm({
             e.stopPropagation();
             onCancel();
           }}
-          className="min-h-9 flex-1 rounded-md border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 sm:min-h-0 sm:py-1.5"
+          className="min-h-9 flex-1 rounded-md border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 sm:min-h-0 sm:py-1.5"
         >
           Cancel
         </button>

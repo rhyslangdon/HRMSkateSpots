@@ -53,15 +53,15 @@ export default function MapLegend({
     <div className="rounded-lg border border-border bg-background p-3 shadow-sm transition-colors sm:p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-semibold text-foreground">Map Filters</p>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-base font-semibold text-foreground">Map Filters</p>
+          <p className="text-xs text-muted-foreground sm:text-sm">
             Toggle spot types, favourites, difficulty, and street features.
           </p>
         </div>
         <button
           type="button"
           onClick={() => setIsOpen((value) => !value)}
-          className="inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted sm:min-h-0 sm:w-auto sm:justify-start sm:py-1.5"
+          className="inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted sm:min-h-0 sm:w-auto sm:justify-start sm:py-1.5"
           aria-expanded={isOpen}
           aria-controls="map-filters-panel"
         >
@@ -75,13 +75,13 @@ export default function MapLegend({
         {isOpen && (
           <MotionDropdown id="map-filters-panel" key="map-filters-panel" className="mt-3">
             <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs font-semibold text-foreground">Spot Types</p>
+              <p className="text-sm font-semibold text-foreground">Spot Types</p>
               <div className="flex flex-wrap gap-1.5">
                 <button
                   type="button"
                   onClick={onReset}
                   disabled={!hasActiveFilters}
-                  className="min-h-8 rounded px-2 py-1 text-[10px] font-medium text-primary transition-colors hover:bg-primary/10 disabled:cursor-default disabled:text-muted-foreground"
+                  className="min-h-8 rounded px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/10 disabled:cursor-default disabled:text-muted-foreground"
                 >
                   Show All
                 </button>
@@ -89,7 +89,7 @@ export default function MapLegend({
                   type="button"
                   onClick={onHideAll}
                   disabled={allHidden}
-                  className="min-h-8 rounded px-2 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-muted disabled:cursor-default disabled:text-muted-foreground/60"
+                  className="min-h-8 rounded px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted disabled:cursor-default disabled:text-muted-foreground/60"
                 >
                   Hide All
                 </button>
@@ -105,7 +105,7 @@ export default function MapLegend({
                     key={type}
                     type="button"
                     onClick={() => onToggleType(type)}
-                    className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-all hover:bg-muted ${
+                    className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm transition-all hover:bg-muted ${
                       isHidden
                         ? 'border-border bg-background text-muted-foreground'
                         : 'border-primary/30 bg-primary/10 text-foreground'
@@ -119,7 +119,7 @@ export default function MapLegend({
                     >
                       <span
                         className="material-symbols-outlined"
-                        style={{ fontSize: '12px', color: ICON_COLOR }}
+                        style={{ fontSize: '13px', color: ICON_COLOR }}
                       >
                         {icon}
                       </span>
@@ -132,7 +132,7 @@ export default function MapLegend({
                 <button
                   type="button"
                   onClick={onToggleFavourites}
-                  className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-all hover:bg-muted ${
+                  className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm transition-all hover:bg-muted ${
                     showFavouritesOnly
                       ? 'border-pink-300 bg-pink-50 text-foreground'
                       : 'border-border bg-background text-muted-foreground'
@@ -146,7 +146,7 @@ export default function MapLegend({
                   >
                     <span
                       className="material-symbols-outlined"
-                      style={{ fontSize: '12px', color: '#e91e63' }}
+                      style={{ fontSize: '13px', color: '#e91e63' }}
                     >
                       favorite
                     </span>
@@ -160,7 +160,7 @@ export default function MapLegend({
 
             <div className="mt-2 grid grid-cols-1 gap-2 border-t border-border pt-2 sm:grid-cols-2 sm:gap-0">
               <div className="sm:pr-3">
-                <p className="mb-1.5 text-[10px] font-semibold text-muted-foreground">Difficulty</p>
+                <p className="mb-1.5 text-xs font-semibold text-muted-foreground">Difficulty</p>
                 <div className="flex flex-wrap gap-1">
                   {DIFFICULTIES.map((difficulty) => {
                     const isHidden = hiddenDifficulties.has(difficulty);
@@ -169,7 +169,7 @@ export default function MapLegend({
                         key={difficulty}
                         type="button"
                         onClick={() => onToggleDifficulty(difficulty)}
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-all hover:ring-1 hover:ring-primary/40 ${
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium transition-all hover:ring-1 hover:ring-primary/40 ${
                           isHidden
                             ? 'border border-border bg-background text-muted-foreground'
                             : 'bg-primary/15 text-foreground'
@@ -186,7 +186,7 @@ export default function MapLegend({
 
               {!streetHidden && (
                 <div className="sm:border-l sm:border-border sm:pl-3">
-                  <p className="mb-1.5 text-[10px] font-semibold text-muted-foreground">
+                  <p className="mb-1.5 text-xs font-semibold text-muted-foreground">
                     Street Features
                   </p>
                   <div className="flex flex-wrap gap-1">
@@ -197,7 +197,7 @@ export default function MapLegend({
                           key={feature}
                           type="button"
                           onClick={() => onToggleFeature(feature)}
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-all hover:ring-1 hover:ring-primary/40 ${
+                          className={`rounded-full px-2 py-0.5 text-xs font-medium transition-all hover:ring-1 hover:ring-primary/40 ${
                             isHidden
                               ? 'border border-border bg-background text-muted-foreground'
                               : 'bg-primary/15 text-foreground'

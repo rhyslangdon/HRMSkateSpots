@@ -9,6 +9,7 @@ import SpotForm from '@/components/SpotForm';
 import MapLegend from '@/components/MapLegend';
 import SpotReviews from '@/components/SpotReviews';
 import { MotionForm, MotionMapPanel, MotionPresence } from '@/components/Motion';
+import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
 import type { Spot, SpotType, StreetFeature, Difficulty } from '@/types';
 import { useFavourites } from '@/hooks/useFavourites';
@@ -276,6 +277,9 @@ export default function Map() {
         method: 'DELETE',
       });
       if (res.ok) {
+        toast.success('Spot deleted', {
+          description: `${deleteSpot.name} was removed successfully.`,
+        });
         handleSpotSaved();
         setDeleteSpot(null);
       } else {
@@ -407,7 +411,7 @@ export default function Map() {
                           key="desktop-pending-prompt"
                           className="mx-auto flex w-[min(16rem,calc(100vw-4.5rem))] flex-col gap-2 rounded-md bg-background p-2 text-foreground shadow sm:w-[16rem]"
                         >
-                          <p className="text-xs font-semibold">Add a spot here?</p>
+                          <p className="text-sm font-semibold">Add a spot here?</p>
                           <div className="flex gap-2">
                             <button
                               type="button"
@@ -415,7 +419,7 @@ export default function Map() {
                                 event.stopPropagation();
                                 handleConfirmAddSpot();
                               }}
-                              className="min-h-9 flex-1 rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+                              className="min-h-9 flex-1 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
                             >
                               Add
                             </button>
@@ -425,7 +429,7 @@ export default function Map() {
                                 event.stopPropagation();
                                 handleCancelPin();
                               }}
-                              className="min-h-9 flex-1 rounded-md border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted"
+                              className="min-h-9 flex-1 rounded-md border border-border px-3 py-2 text-sm font-semibold text-foreground hover:bg-muted"
                             >
                               Cancel
                             </button>
@@ -515,10 +519,10 @@ export default function Map() {
               <div className="pointer-events-auto flex max-h-[75svh] flex-col overflow-hidden rounded-2xl border border-border bg-background/95 shadow-2xl backdrop-blur sm:h-full sm:max-h-none">
                 <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
                   <div className="min-w-0">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                       Spot details
                     </p>
-                    <h3 className="mt-1 text-sm font-semibold leading-tight text-foreground sm:text-base">
+                    <h3 className="mt-1 text-base font-semibold leading-tight text-foreground sm:text-lg">
                       {selectedSpot.name}
                     </h3>
                   </div>
@@ -536,7 +540,7 @@ export default function Map() {
                   <button
                     type="button"
                     onClick={() => setSpotPanelView('overview')}
-                    className={`rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${
+                    className={`rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
                       spotPanelView === 'overview'
                         ? 'bg-background text-foreground shadow-sm'
                         : 'text-muted-foreground hover:text-foreground'
@@ -547,7 +551,7 @@ export default function Map() {
                   <button
                     type="button"
                     onClick={() => setSpotPanelView('details')}
-                    className={`rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${
+                    className={`rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
                       spotPanelView === 'details'
                         ? 'bg-background text-foreground shadow-sm'
                         : 'text-muted-foreground hover:text-foreground'
@@ -587,24 +591,24 @@ export default function Map() {
                     )}
 
                     <div className="flex flex-wrap gap-1.5">
-                      <span className="rounded-full bg-sky-500/60 px-2.5 py-1 text-[11px] font-medium text-white">
+                      <span className="rounded-full bg-sky-500/60 px-2.5 py-1 text-xs font-medium text-white sm:text-sm">
                         {selectedSpot.spot_type}
                       </span>
                       {selectedSpot.street_feature && (
-                        <span className="rounded-full bg-purple-500/60 px-2.5 py-1 text-[11px] font-medium text-white">
+                        <span className="rounded-full bg-purple-500/60 px-2.5 py-1 text-xs font-medium text-white sm:text-sm">
                           {selectedSpot.street_feature}
                         </span>
                       )}
-                      <span className="rounded-full bg-emerald-500/60 px-2.5 py-1 text-[11px] font-medium text-white">
+                      <span className="rounded-full bg-emerald-500/60 px-2.5 py-1 text-xs font-medium text-white sm:text-sm">
                         {selectedSpot.difficulty}
                       </span>
-                      <span className="rounded-full bg-amber-500/70 px-2.5 py-1 text-[11px] font-medium text-white">
+                      <span className="rounded-full bg-amber-500/70 px-2.5 py-1 text-xs font-medium text-white sm:text-sm">
                         Bust {selectedSpot.bust_factor}/5
                       </span>
                     </div>
 
                     {selectedSpot.address && (
-                      <p className="text-xs leading-relaxed text-muted-foreground">
+                      <p className="text-sm leading-relaxed text-muted-foreground">
                         {selectedSpot.address}
                       </p>
                     )}
@@ -613,7 +617,7 @@ export default function Map() {
                       {userId && (
                         <button
                           type="button"
-                          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/5"
+                          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-border px-3 py-2 text-sm font-semibold text-primary hover:bg-primary/5"
                           aria-label={
                             isFavourite(selectedSpot.id)
                               ? 'Remove from favourites'
@@ -661,18 +665,18 @@ export default function Map() {
                       )}
                     </div>
 
-                    {favError && <div className="text-xs text-red-500">{favError}</div>}
+                    {favError && <div className="text-sm text-red-500">{favError}</div>}
 
                     {userId && (selectedSpot.user_id === userId || userRole === 'admin') && (
                       <div className="flex flex-col gap-2 pt-1 sm:flex-row">
                         <button
-                          className="min-h-10 rounded-xl border border-border bg-muted px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/80"
+                          className="min-h-10 rounded-xl border border-border bg-muted px-3 py-2 text-sm font-semibold text-foreground hover:bg-muted/80"
                           onClick={() => handleEditSpot(selectedSpot)}
                         >
                           Edit
                         </button>
                         <button
-                          className="min-h-10 rounded-xl bg-red-600 px-3 py-2 text-xs font-semibold text-white hover:bg-red-700"
+                          className="min-h-10 rounded-xl bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700"
                           onClick={() => handleDeleteSpot(selectedSpot)}
                         >
                           Delete
@@ -682,18 +686,18 @@ export default function Map() {
 
                     {deleteSpot && deleteSpot.id === selectedSpot.id && (
                       <div className="rounded-xl border border-border bg-background p-3 shadow">
-                        <p className="text-sm text-foreground">
+                        <p className="text-base text-foreground">
                           Delete <span className="font-bold">{deleteSpot.name}</span>?
                         </p>
                         <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                           <button
-                            className="min-h-10 rounded-xl bg-red-500 px-4 py-2 text-xs font-semibold text-white hover:bg-red-600"
+                            className="min-h-10 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600"
                             onClick={confirmDeleteSpot}
                           >
                             Delete
                           </button>
                           <button
-                            className="min-h-10 rounded-xl border border-border bg-muted px-4 py-2 text-xs font-semibold text-foreground hover:bg-muted/80"
+                            className="min-h-10 rounded-xl border border-border bg-muted px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted/80"
                             onClick={cancelDeleteSpot}
                           >
                             Cancel
@@ -709,15 +713,15 @@ export default function Map() {
                   >
                     {selectedSpot.description ? (
                       <div className="rounded-xl border border-border bg-muted/30 p-3">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                           Description
                         </p>
-                        <p className="mt-2 whitespace-pre-line break-words text-xs leading-relaxed text-foreground">
+                        <p className="mt-2 whitespace-pre-line break-words text-sm leading-relaxed text-foreground">
                           {selectedSpot.description}
                         </p>
                       </div>
                     ) : (
-                      <div className="rounded-xl border border-dashed border-border bg-muted/20 p-3 text-xs text-muted-foreground">
+                      <div className="rounded-xl border border-dashed border-border bg-muted/20 p-3 text-sm text-muted-foreground">
                         No description added for this spot yet.
                       </div>
                     )}

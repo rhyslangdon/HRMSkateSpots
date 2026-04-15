@@ -21,8 +21,8 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { headers } from 'next/headers';
 import { Suspense } from 'react';
-import { Toaster } from 'sonner';
 import './globals.css';
+import AppToaster from '@/components/AppToaster';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import UnauthorizedToast from '@/components/UnauthorizedToast';
@@ -70,7 +70,7 @@ export default async function RootLayout({
             <main className="min-h-screen">{children}</main>
             <Footer />
           </SubscriptionProvider>
-          <Toaster position="bottom-right" richColors />
+          <AppToaster />
           <Suspense>
             <UnauthorizedToast />
           </Suspense>

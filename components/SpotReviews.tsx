@@ -102,9 +102,9 @@ export default function SpotReviews({ spotId, userId }: SpotReviewsProps) {
   return (
     <div className="relative mt-2 border-t border-border pt-2">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs font-semibold text-foreground">Reviews</p>
+        <p className="text-sm font-semibold text-foreground">Reviews</p>
         {!loading && reviews.length > 0 && (
-          <div className="flex flex-wrap gap-1 text-[10px]">
+          <div className="flex flex-wrap gap-1 text-xs">
             <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 font-medium text-emerald-700">
               Skateable {skateableCount}
             </span>
@@ -123,19 +123,19 @@ export default function SpotReviews({ spotId, userId }: SpotReviewsProps) {
               setError(null);
               setIsFormOpen((current) => !current);
             }}
-            className="min-h-9 w-full rounded-md border border-border bg-background px-2.5 py-2 text-[10px] font-semibold text-foreground hover:bg-muted sm:min-h-0 sm:py-1.5"
+            className="min-h-9 w-full rounded-md border border-border bg-background px-2.5 py-2 text-xs font-semibold text-foreground hover:bg-muted sm:min-h-0 sm:py-1.5"
           >
             {existingUserReview ? 'Edit Review' : 'Add Review'}
           </button>
         </div>
       ) : (
-        <p className="mt-2 text-[10px] text-muted-foreground">Log in to leave a review.</p>
+        <p className="mt-2 text-xs text-muted-foreground">Log in to leave a review.</p>
       )}
 
       {isFormOpen && userId && (
         <div className="absolute inset-x-0 top-14 z-20 rounded-md border border-border bg-background p-2 shadow-lg sm:top-12 sm:p-2.5">
           <form onSubmit={handleSubmit} className="space-y-2">
-            <p className="text-[10px] font-semibold text-foreground">Leave a review</p>
+            <p className="text-xs font-semibold text-foreground">Leave a review</p>
             <select
               value={reviewForm.skateability}
               onChange={(event) =>
@@ -144,7 +144,7 @@ export default function SpotReviews({ spotId, userId }: SpotReviewsProps) {
                   skateability: event.target.value as Skateability,
                 }))
               }
-              className="min-h-9 w-full rounded-md border border-border bg-background px-2.5 py-2 text-[10px] text-foreground sm:min-h-0 sm:py-1.5"
+              className="min-h-9 w-full rounded-md border border-border bg-background px-2.5 py-2 text-xs text-foreground sm:min-h-0 sm:py-1.5"
             >
               <option value="skateable">Skateable</option>
               <option value="not_skateable">Not Skateable</option>
@@ -157,20 +157,20 @@ export default function SpotReviews({ spotId, userId }: SpotReviewsProps) {
               rows={2}
               maxLength={250}
               placeholder="Leave a short review (optional)"
-              className="w-full resize-none rounded-md border border-border bg-background px-2.5 py-2 text-[10px] text-foreground sm:py-1.5"
+              className="w-full resize-none rounded-md border border-border bg-background px-2.5 py-2 text-xs text-foreground sm:py-1.5"
             />
             <div className="flex flex-col gap-2 sm:flex-row">
               <button
                 type="submit"
                 disabled={saving}
-                className="min-h-9 flex-1 rounded-md bg-primary px-2.5 py-2 text-[10px] font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 sm:min-h-0 sm:py-1.5"
+                className="min-h-9 flex-1 rounded-md bg-primary px-2.5 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 sm:min-h-0 sm:py-1.5"
               >
                 {saving ? 'Saving…' : 'Save Review'}
               </button>
               <button
                 type="button"
                 onClick={() => setIsFormOpen(false)}
-                className="min-h-9 flex-1 rounded-md border border-border px-2.5 py-2 text-[10px] font-semibold text-foreground hover:bg-muted sm:min-h-0 sm:py-1.5"
+                className="min-h-9 flex-1 rounded-md border border-border px-2.5 py-2 text-xs font-semibold text-foreground hover:bg-muted sm:min-h-0 sm:py-1.5"
               >
                 Cancel
               </button>
@@ -180,9 +180,9 @@ export default function SpotReviews({ spotId, userId }: SpotReviewsProps) {
       )}
 
       {loading ? (
-        <p className="mt-2 text-[10px] text-muted-foreground">Loading reviews…</p>
+        <p className="mt-2 text-xs text-muted-foreground">Loading reviews…</p>
       ) : reviews.length === 0 ? (
-        <p className="mt-2 text-[10px] text-muted-foreground">No reviews yet.</p>
+        <p className="mt-2 text-xs text-muted-foreground">No reviews yet.</p>
       ) : (
         <div className="mt-2 max-h-36 space-y-2 overflow-y-auto pr-1">
           {reviews.map((review) => (
@@ -197,10 +197,10 @@ export default function SpotReviews({ spotId, userId }: SpotReviewsProps) {
                 >
                   {formatSkateability(review.skateability)}
                 </span>
-                <span className="text-[10px] text-muted-foreground">{review.reviewer_name}</span>
+                <span className="text-xs text-muted-foreground">{review.reviewer_name}</span>
               </div>
               {review.comment && (
-                <p className="mt-1 whitespace-pre-line break-words text-[10px] text-foreground">
+                <p className="mt-1 whitespace-pre-line break-words text-xs text-foreground">
                   {review.comment}
                 </p>
               )}
@@ -209,7 +209,7 @@ export default function SpotReviews({ spotId, userId }: SpotReviewsProps) {
         </div>
       )}
 
-      {error && <p className="mt-2 text-[10px] text-red-500">{error}</p>}
+      {error && <p className="mt-2 text-xs text-red-500">{error}</p>}
     </div>
   );
 }
