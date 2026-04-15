@@ -8,6 +8,10 @@ const withPWA = nextPWA({
   disable: process.env.NODE_ENV === 'development',
   runtimeCaching: [
     {
+      urlPattern: /^https?:\/\/[^/]+\/api\/.*$/,
+      handler: 'NetworkOnly',
+    },
+    {
       urlPattern: /^https?.*/,
       handler: 'NetworkFirst',
       options: {

@@ -147,7 +147,7 @@ export default function Map() {
     const supabase = createClient();
     async function loadSpots() {
       try {
-        const res = await fetch('/api/spots');
+        const res = await fetch('/api/spots', { cache: 'no-store' });
         if (res.ok) {
           const { data } = await res.json();
           setSpots(data ?? []);
@@ -241,7 +241,7 @@ export default function Map() {
     setEditingSpot(null);
     async function reload() {
       try {
-        const res = await fetch('/api/spots');
+        const res = await fetch('/api/spots', { cache: 'no-store' });
         if (res.ok) {
           const { data } = await res.json();
           setSpots(data ?? []);
