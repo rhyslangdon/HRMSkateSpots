@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createServiceRoleClient } from '@/lib/supabase/serviceRole';
 import type { SpotFormData } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -135,6 +136,7 @@ export async function PATCH(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const supabase = await createClient();
+    const serviceRoleSupabase = createServiceRoleClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -170,7 +172,7 @@ export async function DELETE(request: NextRequest) {
     // Check ownership or admin
     const { data: spot, error: fetchError } = await supabase
       .from('spots')
-      .select('user_id')
+      .select('user_id, image_url')
       .eq('id', id)
       .single();
     if (fetchError || !spot) {
@@ -197,14 +199,51 @@ export async function DELETE(request: NextRequest) {
         { status: 403 }
       );
     }
-    // Delete spot
-    const { error: deleteError } = await supabase.from('spots').delete().eq('id', id);
+    const { error: deleteReviewsError } = await serviceRoleSupabase
+      .from('reviews')
+      .delete()
+      .eq('spot_id', id);
+
+    if (deleteReviewsError) {
+      return NextResponse.json(
+        { error: 'Database Error', message: deleteReviewsError.message },
+        { status: 500 }
+      );
+    }
+
+    const { error: deleteFavouritesError } = await serviceRoleSupabase
+      .from('favourites')
+      .delete()
+      .eq('spot_id', id);
+
+    if (deleteFavouritesError) {
+      return NextResponse.json(
+        { error: 'Database Error', message: deleteFavouritesError.message },
+        { status: 500 }
+      );
+    }
+
+    const { error: deleteError } = await serviceRoleSupabase.from('spots').delete().eq('id', id);
     if (deleteError) {
       return NextResponse.json(
         { error: 'Database Error', message: deleteError.message },
         { status: 500 }
       );
     }
+
+    if (spot.image_url) {
+      try {
+        const imagePath = new URL(spot.image_url).pathname.split('/spot-images/')[1];
+        if (imagePath) {
+          await serviceRoleSupabase.storage
+            .from('spot-images')
+            .remove([decodeURIComponent(imagePath)]);
+        }
+      } catch {
+        // Ignore storage cleanup failures so spot deletion still succeeds.
+      }
+    }
+
     return NextResponse.json({ message: 'Spot deleted.' });
   } catch {
     return NextResponse.json(
