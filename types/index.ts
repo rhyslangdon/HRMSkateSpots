@@ -53,6 +53,8 @@ export interface ApiError {
 export type SpotType = 'street' | 'park' | 'diy' | 'transition' | 'flatground' | 'other';
 export type Difficulty = 'beginner' | 'intermediate' | 'advanced' | 'all';
 export type StreetFeature = 'ledge' | 'stairs' | 'handrail' | 'gap' | 'bank' | 'other';
+export type Skateability = 'skateable' | 'not_skateable';
+export type BustFactor = 1 | 2 | 3 | 4 | 5;
 
 export interface Spot {
   id: string;
@@ -66,6 +68,7 @@ export interface Spot {
   spot_type: SpotType;
   street_feature: StreetFeature | null;
   difficulty: Difficulty;
+  bust_factor: BustFactor;
   image_url: string | null;
   is_approved: boolean;
   created_at: string;
@@ -79,6 +82,18 @@ export interface SpotFormData {
   spot_type: SpotType;
   street_feature: StreetFeature | null;
   difficulty: Difficulty;
+  bust_factor: BustFactor;
+}
+
+export interface Review {
+  id: string;
+  user_id: string;
+  spot_id: string;
+  skateability: Skateability;
+  comment: string | null;
+  created_at: string;
+  updated_at?: string;
+  reviewer_name?: string | null;
 }
 
 /**

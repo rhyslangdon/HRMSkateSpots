@@ -55,6 +55,18 @@ export async function PATCH(request: NextRequest) {
         { status: 400 }
       );
     }
+    if (
+      'bust_factor' in updateData &&
+      (typeof updateData.bust_factor !== 'number' ||
+        Number.isNaN(updateData.bust_factor) ||
+        updateData.bust_factor < 1 ||
+        updateData.bust_factor > 5)
+    ) {
+      return NextResponse.json(
+        { error: 'Validation Error', message: 'Bust factor must be a number from 1 to 5.' },
+        { status: 400 }
+      );
+    }
     // Check ownership or admin
     const { data: spot, error: fetchError } = await supabase
       .from('spots')
@@ -223,6 +235,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (
+      typeof body.bust_factor !== 'number' ||
+      Number.isNaN(body.bust_factor) ||
+      body.bust_factor < 1 ||
+      body.bust_factor > 5
+    ) {
+      return NextResponse.json(
+        { error: 'Validation Error', message: 'Bust factor must be a number from 1 to 5.' },
+        { status: 400 }
+      );
+    }
+
     const { data, error } = await supabase
       .from('spots')
       .insert({
@@ -236,6 +260,7 @@ export async function POST(request: NextRequest) {
         spot_type: body.spot_type || 'street',
         street_feature: body.spot_type === 'street' ? body.street_feature || null : null,
         difficulty: body.difficulty || 'beginner',
+        bust_factor: body.bust_factor,
         image_url: body.image_url || null,
         is_approved: true,
       })

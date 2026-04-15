@@ -49,8 +49,8 @@ export default function MapLegend({
     hiddenTypes.size === SPOT_TYPES.length && hiddenDifficulties.size === DIFFICULTIES.length;
 
   return (
-    <div className="rounded-lg border border-border bg-background p-3 shadow-sm transition-colors">
-      <div className="flex items-center justify-between gap-3">
+    <div className="rounded-lg border border-border bg-background p-3 shadow-sm transition-colors sm:p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-foreground">Map Filters</p>
           <p className="text-[11px] text-muted-foreground">
@@ -60,7 +60,7 @@ export default function MapLegend({
         <button
           type="button"
           onClick={() => setIsOpen((value) => !value)}
-          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+          className="inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted sm:min-h-0 sm:w-auto sm:justify-start sm:py-1.5"
           aria-expanded={isOpen}
           aria-controls="map-filters-panel"
         >
@@ -72,14 +72,14 @@ export default function MapLegend({
       </div>
       {isOpen && (
         <div id="map-filters-panel" className="mt-3">
-          <div className="mb-2 flex items-center justify-between">
+          <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs font-semibold text-foreground">Spot Types</p>
-            <div className="flex gap-1.5">
+            <div className="flex flex-wrap gap-1.5">
               <button
                 type="button"
                 onClick={onReset}
                 disabled={!hasActiveFilters}
-                className="rounded px-2 py-0.5 text-[10px] font-medium text-primary transition-colors hover:bg-primary/10 disabled:cursor-default disabled:text-muted-foreground"
+                className="min-h-8 rounded px-2 py-1 text-[10px] font-medium text-primary transition-colors hover:bg-primary/10 disabled:cursor-default disabled:text-muted-foreground"
               >
                 Show All
               </button>
@@ -87,7 +87,7 @@ export default function MapLegend({
                 type="button"
                 onClick={onHideAll}
                 disabled={allHidden}
-                className="rounded px-2 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-muted disabled:cursor-default disabled:text-muted-foreground/60"
+                className="min-h-8 rounded px-2 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-muted disabled:cursor-default disabled:text-muted-foreground/60"
               >
                 Hide All
               </button>
