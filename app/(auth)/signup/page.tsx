@@ -8,7 +8,7 @@
  *    (Supabase handles the email sending — NOT our nodemailer code)
  * 4. User sees a "Check your email" screen
  * 5. When user clicks the link in the email → goes to /auth/callback
- * 6. callback/route.ts exchanges the code for a session → redirects to /dashboard
+ * 6. callback/route.ts exchanges the code for a session → redirects to /
  * 7. The user's email_confirmed_at field gets set, and the yellow banner disappears
  */
 'use client';

@@ -31,8 +31,9 @@ export default function LoginPage() {
       return;
     }
 
-    router.push('/dashboard');
-    router.refresh();
+    // Use a full navigation so production SSR/proxy auth checks receive
+    // the freshly written Supabase cookies on the next request.
+    window.location.assign('/');
   };
 
   return (

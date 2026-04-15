@@ -8,7 +8,7 @@
  *   1. User clicks verification link in email
  *   2. Link goes to: /auth/callback?code=abc123
  *   3. We exchange the code for a session (user is now logged in + verified)
- *   4. "next" defaults to /dashboard → redirect there
+ *   4. "next" defaults to / → redirect there
  *
  * FOR PASSWORD RESET:
  *   1. User clicks reset link in email
@@ -28,9 +28,9 @@ export async function GET(request: Request) {
   // The one-time auth code from Supabase's email link
   const code = searchParams.get('code');
 
-  // Where to redirect after — defaults to /dashboard for verification,
+  // Where to redirect after — defaults to / for verification,
   // or /reset-password if the link came from a password reset email
-  const next = searchParams.get('next') ?? '/dashboard';
+  const next = searchParams.get('next') ?? '/';
 
   if (code) {
     const supabase = await createClient();

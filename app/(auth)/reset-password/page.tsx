@@ -78,12 +78,12 @@ export default function ResetPasswordPage() {
           </p>
           <button
             onClick={() => {
-              router.push('/dashboard');
+              router.push('/');
               router.refresh();
             }}
             className="mt-6 inline-block rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Go to Dashboard
+            Go to Home
           </button>
         </div>
       </div>
