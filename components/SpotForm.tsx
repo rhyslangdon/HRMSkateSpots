@@ -45,6 +45,7 @@ interface SpotFormProps {
   onSaved: () => void;
   onCancel: () => void;
   initialData?: any;
+  mode?: 'popup' | 'overlay';
 }
 
 export default function SpotForm({
@@ -53,6 +54,7 @@ export default function SpotForm({
   onSaved,
   onCancel,
   initialData,
+  mode = 'popup',
 }: SpotFormProps) {
   const [formData, setFormData] = useState<SpotFormData>(
     initialData
@@ -150,7 +152,11 @@ export default function SpotForm({
     <form
       onSubmit={handleSubmit}
       onClick={(e) => e.stopPropagation()}
-      className="flex w-[min(18rem,calc(100vw-4.5rem))] flex-col gap-2 rounded-md bg-[var(--background)] p-2 text-[var(--foreground)] shadow sm:w-[18rem] sm:gap-2.5 sm:p-2.5"
+      className={`flex flex-col gap-2 rounded-md bg-[var(--background)] p-2 text-[var(--foreground)] sm:gap-2.5 sm:p-2.5 ${
+        mode === 'overlay'
+          ? 'w-full max-w-none shadow-none'
+          : 'w-[min(18rem,calc(100vw-4.5rem))] shadow sm:w-[18rem]'
+      }`}
       style={{ background: 'var(--background)', color: 'var(--foreground)' }}
     >
       <div className="flex items-center gap-1">

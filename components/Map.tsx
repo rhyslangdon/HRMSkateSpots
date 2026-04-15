@@ -12,6 +12,7 @@ import { createClient } from '@/lib/supabase/client';
 import type { Spot, SpotType, StreetFeature, Difficulty } from '@/types';
 import { useFavourites } from '@/hooks/useFavourites';
 import { useTheme } from '@/components/ThemeContext';
+import { useSyncExternalStore } from 'react';
 
 const SPOT_TYPES: SpotType[] = ['street', 'park', 'diy', 'transition', 'flatground', 'other'];
 const STREET_FEATURES: StreetFeature[] = ['ledge', 'stairs', 'handrail', 'gap', 'bank', 'other'];
@@ -38,6 +39,20 @@ function ClickHandler({ onMapClick }: { onMapClick: (latlng: [number, number]) =
   return null;
 }
 
+function subscribeToMobileViewport(onStoreChange: () => void) {
+  const mediaQuery = window.matchMedia('(max-width: 639px)');
+  mediaQuery.addEventListener('change', onStoreChange);
+  return () => mediaQuery.removeEventListener('change', onStoreChange);
+}
+
+function getMobileViewportSnapshot() {
+  return window.matchMedia('(max-width: 639px)').matches;
+}
+
+function getMobileViewportServerSnapshot() {
+  return false;
+}
+
 export default function Map() {
   const { theme } = useTheme();
   const [spots, setSpots] = useState<Spot[]>([]);
@@ -53,6 +68,11 @@ export default function Map() {
   const [hiddenDifficulties, setHiddenDifficulties] = useState<Set<Difficulty>>(new Set());
   const [showFavouritesOnly, setShowFavouritesOnly] = useState(false);
   const [expandedImage, setExpandedImage] = useState<{ url: string; name: string } | null>(null);
+  const isMobileViewport = useSyncExternalStore(
+    subscribeToMobileViewport,
+    getMobileViewportSnapshot,
+    getMobileViewportServerSnapshot
+  );
 
   // Favourites logic
   const { addFavourite, removeFavourite, isFavourite } = useFavourites(userId);
@@ -115,6 +135,8 @@ export default function Map() {
       null)
     : null;
   const isSpotPanelOpen = selectedSpot !== null;
+  const isMobileFormPanelOpen = isMobileViewport && pendingPosition !== null;
+  const isMapOverlayOpen = isSpotPanelOpen || isMobileFormPanelOpen;
 
   useEffect(() => {
     const supabase = createClient();
@@ -308,7 +330,7 @@ export default function Map() {
       <div className="relative">
         <div
           className={`relative h-[55svh] min-h-[420px] overflow-hidden rounded-xl border border-border shadow-sm sm:h-[62svh] sm:min-h-[520px] lg:h-[68svh] lg:max-h-[820px] ${
-            isSpotPanelOpen ? 'map-controls-hidden' : ''
+            isMapOverlayOpen ? 'map-controls-hidden' : ''
           }`}
         >
           <MapContainer
@@ -346,21 +368,26 @@ export default function Map() {
             </LayersControl>
             <ClickHandler onMapClick={handleMapClick} />
             {pendingPosition && (
-              <Marker position={pendingPosition} ref={pendingMarkerRef}>
-                <Popup
-                  eventHandlers={{ remove: handleCancelPin }}
-                  minWidth={260}
-                  maxWidth={360}
-                  className="spot-popup"
-                >
-                  <SpotForm
-                    latitude={pendingPosition[0]}
-                    longitude={pendingPosition[1]}
-                    onSaved={handleSpotSaved}
-                    onCancel={handleCancelPin}
-                    {...(editingSpot ? { initialData: editingSpot } : {})}
-                  />
-                </Popup>
+              <Marker
+                position={pendingPosition}
+                ref={isMobileViewport ? undefined : pendingMarkerRef}
+              >
+                {!isMobileViewport && (
+                  <Popup
+                    eventHandlers={{ remove: handleCancelPin }}
+                    minWidth={260}
+                    maxWidth={360}
+                    className="spot-popup"
+                  >
+                    <SpotForm
+                      latitude={pendingPosition[0]}
+                      longitude={pendingPosition[1]}
+                      onSaved={handleSpotSaved}
+                      onCancel={handleCancelPin}
+                      {...(editingSpot ? { initialData: editingSpot } : {})}
+                    />
+                  </Popup>
+                )}
               </Marker>
             )}
             {visibleSpots.map((spot) => (
@@ -375,6 +402,20 @@ export default function Map() {
             ))}
           </MapContainer>
         </div>
+        {isMobileFormPanelOpen && pendingPosition && (
+          <div className="pointer-events-none absolute inset-x-3 bottom-4 z-[550] sm:hidden">
+            <div className="pointer-events-auto max-h-[78svh] overflow-y-auto rounded-2xl border border-border bg-background/95 p-3 shadow-2xl backdrop-blur">
+              <SpotForm
+                latitude={pendingPosition[0]}
+                longitude={pendingPosition[1]}
+                onSaved={handleSpotSaved}
+                onCancel={handleCancelPin}
+                mode="overlay"
+                {...(editingSpot ? { initialData: editingSpot } : {})}
+              />
+            </div>
+          </div>
+        )}
         {selectedSpot && (
           <div className="pointer-events-none absolute inset-x-3 bottom-4 z-[500] sm:inset-y-4 sm:right-4 sm:left-auto sm:w-[24rem]">
             <div className="pointer-events-auto flex max-h-[75svh] flex-col overflow-hidden rounded-2xl border border-border bg-background/95 shadow-2xl backdrop-blur sm:h-full sm:max-h-none">
