@@ -1,7 +1,7 @@
 'use client';
 
 import { getSpotIconName, createSpotDivIcon } from './SpotMarkerIcon';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, LayersControl } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -57,6 +57,7 @@ export default function Map() {
   const { theme } = useTheme();
   const [spots, setSpots] = useState<Spot[]>([]);
   const [pendingPosition, setPendingPosition] = useState<[number, number] | null>(null);
+  const [pendingPanelMode, setPendingPanelMode] = useState<'prompt' | 'form'>('prompt');
   const [userId, setUserId] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<'user' | 'admin' | null>(null);
   const [editingSpot, setEditingSpot] = useState<Spot | null>(null);
@@ -68,6 +69,7 @@ export default function Map() {
   const [hiddenDifficulties, setHiddenDifficulties] = useState<Set<Difficulty>>(new Set());
   const [showFavouritesOnly, setShowFavouritesOnly] = useState(false);
   const [expandedImage, setExpandedImage] = useState<{ url: string; name: string } | null>(null);
+  const pendingMarkerRef = useRef<L.Marker | null>(null);
   const isMobileViewport = useSyncExternalStore(
     subscribeToMobileViewport,
     getMobileViewportSnapshot,
@@ -135,8 +137,10 @@ export default function Map() {
       null)
     : null;
   const isSpotPanelOpen = selectedSpot !== null;
-  const isMobileFormPanelOpen = isMobileViewport && pendingPosition !== null;
-  const isMapOverlayOpen = isSpotPanelOpen || isMobileFormPanelOpen;
+  const isPendingPromptOpen = pendingPosition !== null && pendingPanelMode === 'prompt';
+  const isPendingFormOpen = pendingPosition !== null && pendingPanelMode === 'form';
+  const isMobilePendingPanelOpen = isMobileViewport && pendingPosition !== null;
+  const isMapOverlayOpen = isSpotPanelOpen || isMobilePendingPanelOpen;
 
   useEffect(() => {
     const supabase = createClient();
@@ -210,14 +214,29 @@ export default function Map() {
     return () => window.removeEventListener('keydown', handleKeydown);
   }, [isSpotPanelOpen]);
 
+  useEffect(() => {
+    if (isMobileViewport || !pendingPosition || !pendingMarkerRef.current) {
+      return;
+    }
+
+    const animationFrameId = window.requestAnimationFrame(() => {
+      pendingMarkerRef.current?.openPopup();
+    });
+
+    return () => window.cancelAnimationFrame(animationFrameId);
+  }, [isMobileViewport, pendingPanelMode, pendingPosition]);
+
   function handleMapClick(latlng: [number, number]) {
     setSelectedSpotId(null);
     setSpotPanelView('overview');
+    setEditingSpot(null);
     setPendingPosition(latlng);
+    setPendingPanelMode('prompt');
   }
 
   function handleSpotSaved() {
     setPendingPosition(null);
+    setPendingPanelMode('prompt');
     setEditingSpot(null);
     async function reload() {
       try {
@@ -238,6 +257,7 @@ export default function Map() {
     setSpotPanelView('overview');
     setEditingSpot(spot);
     setPendingPosition([spot.latitude, spot.longitude]);
+    setPendingPanelMode('form');
   }
 
   function handleDeleteSpot(spot: Spot) {
@@ -273,6 +293,12 @@ export default function Map() {
 
   function handleCancelPin() {
     setPendingPosition(null);
+    setPendingPanelMode('prompt');
+    setEditingSpot(null);
+  }
+
+  function handleConfirmAddSpot() {
+    setPendingPanelMode('form');
   }
 
   function handleSelectSpot(spotId: string) {
@@ -305,10 +331,6 @@ export default function Map() {
     });
     return `/api/download-image?${params.toString()}`;
   }
-
-  const pendingMarkerRef = useCallback((marker: L.Marker | null) => {
-    if (marker) marker.openPopup();
-  }, []);
 
   return (
     <div className="flex w-full flex-col gap-3 sm:gap-4">
@@ -379,13 +401,41 @@ export default function Map() {
                     maxWidth={360}
                     className="spot-popup"
                   >
-                    <SpotForm
-                      latitude={pendingPosition[0]}
-                      longitude={pendingPosition[1]}
-                      onSaved={handleSpotSaved}
-                      onCancel={handleCancelPin}
-                      {...(editingSpot ? { initialData: editingSpot } : {})}
-                    />
+                    {isPendingPromptOpen ? (
+                      <div className="flex w-[min(16rem,calc(100vw-4.5rem))] flex-col gap-2 rounded-md bg-background p-2 text-foreground shadow sm:w-[16rem]">
+                        <p className="text-xs font-semibold">Add a spot here?</p>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleConfirmAddSpot();
+                            }}
+                            className="min-h-9 flex-1 rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+                          >
+                            Add
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleCancelPin();
+                            }}
+                            className="min-h-9 flex-1 rounded-md border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <SpotForm
+                        latitude={pendingPosition[0]}
+                        longitude={pendingPosition[1]}
+                        onSaved={handleSpotSaved}
+                        onCancel={handleCancelPin}
+                        {...(editingSpot ? { initialData: editingSpot } : {})}
+                      />
+                    )}
                   </Popup>
                 )}
               </Marker>
@@ -402,17 +452,44 @@ export default function Map() {
             ))}
           </MapContainer>
         </div>
-        {isMobileFormPanelOpen && pendingPosition && (
+        {isMobilePendingPanelOpen && pendingPosition && (
           <div className="pointer-events-none absolute inset-x-3 bottom-4 z-[550] sm:hidden">
             <div className="pointer-events-auto max-h-[78svh] overflow-y-auto rounded-2xl border border-border bg-background/95 p-3 shadow-2xl backdrop-blur">
-              <SpotForm
-                latitude={pendingPosition[0]}
-                longitude={pendingPosition[1]}
-                onSaved={handleSpotSaved}
-                onCancel={handleCancelPin}
-                mode="overlay"
-                {...(editingSpot ? { initialData: editingSpot } : {})}
-              />
+              {isPendingPromptOpen ? (
+                <div className="flex flex-col gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Add a spot here?</p>
+                    {/* <p className="mt-1 text-xs text-muted-foreground">
+                      The pin is placed. You can continue to the form or cancel.
+                    </p> */}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={handleConfirmAddSpot}
+                      className="min-h-10 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                    >
+                      Add
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCancelPin}
+                      className="min-h-10 rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <SpotForm
+                  latitude={pendingPosition[0]}
+                  longitude={pendingPosition[1]}
+                  onSaved={handleSpotSaved}
+                  onCancel={handleCancelPin}
+                  mode="overlay"
+                  {...(editingSpot ? { initialData: editingSpot } : {})}
+                />
+              )}
             </div>
           </div>
         )}
