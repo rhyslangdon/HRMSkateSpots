@@ -10,6 +10,9 @@ const withPWA = nextPWA({
     {
       urlPattern: /^https?:\/\/[^/]+\/api\/.*$/,
       handler: 'NetworkOnly',
+      options: {
+        cacheName: 'apiNetworkOnly',
+      },
     },
     {
       urlPattern: /^https?.*/,
