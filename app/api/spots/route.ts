@@ -138,8 +138,17 @@ export async function DELETE(request: NextRequest) {
         { status: 403 }
       );
     }
-    const body = await request.json();
-    const { id } = body;
+    let id = request.nextUrl.searchParams.get('id');
+
+    if (!id) {
+      try {
+        const body = (await request.json()) as { id?: string };
+        id = body.id ?? null;
+      } catch {
+        id = null;
+      }
+    }
+
     if (!id) {
       return NextResponse.json(
         { error: 'Validation Error', message: 'Spot ID is required.' },

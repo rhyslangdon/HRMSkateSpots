@@ -271,10 +271,9 @@ export default function Map() {
   async function confirmDeleteSpot() {
     if (!deleteSpot) return;
     try {
-      const res = await fetch('/api/spots', {
+      const params = new URLSearchParams({ id: deleteSpot.id });
+      const res = await fetch(`/api/spots?${params.toString()}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: deleteSpot.id }),
       });
       if (res.ok) {
         handleSpotSaved();
