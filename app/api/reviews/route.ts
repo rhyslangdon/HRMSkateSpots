@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import type { Skateability } from '@/types';
 
+type ReviewProfile = {
+  display_name: string | null;
+  email: string | null;
+};
+
 function isValidSkateability(value: unknown): value is Skateability {
   return value === 'skateable' || value === 'not_skateable';
 }
@@ -33,16 +38,22 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const reviews = (data ?? []).map((review) => ({
-      id: review.id,
-      user_id: review.user_id,
-      spot_id: review.spot_id,
-      skateability: review.skateability,
-      comment: review.comment,
-      created_at: review.created_at,
-      updated_at: review.updated_at,
-      reviewer_name: review.profiles?.display_name ?? review.profiles?.email ?? 'Anonymous',
-    }));
+    const reviews = (data ?? []).map((review) => {
+      const profile = Array.isArray(review.profiles)
+        ? (review.profiles[0] as ReviewProfile | undefined)
+        : ((review.profiles as ReviewProfile | null | undefined) ?? undefined);
+
+      return {
+        id: review.id,
+        user_id: review.user_id,
+        spot_id: review.spot_id,
+        skateability: review.skateability,
+        comment: review.comment,
+        created_at: review.created_at,
+        updated_at: review.updated_at,
+        reviewer_name: profile?.display_name ?? profile?.email ?? 'Anonymous',
+      };
+    });
 
     return NextResponse.json({ data: reviews });
   } catch {
