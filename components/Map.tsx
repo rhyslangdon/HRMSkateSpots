@@ -567,14 +567,6 @@ export default function Map() {
                   </div>
                 ) : (
                   <div className="flex flex-col gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setSpotPanelView('overview')}
-                      className="inline-flex min-h-10 items-center justify-center rounded-xl border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted sm:w-fit"
-                    >
-                      Back to overview
-                    </button>
-
                     {selectedSpot.description ? (
                       <div className="rounded-xl border border-border bg-muted/30 p-3">
                         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
