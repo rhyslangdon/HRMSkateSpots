@@ -110,6 +110,7 @@ export default function SpotForm({
     setSubmitting(true);
     try {
       const imageUrl = await uploadImage();
+      const finalImageUrl = imageUrl ?? initialData?.image_url ?? null;
       let res;
       if (initialData && initialData.id) {
         // PATCH for edit
@@ -121,7 +122,7 @@ export default function SpotForm({
             ...formData,
             latitude,
             longitude,
-            image_url: imageUrl,
+            image_url: finalImageUrl,
           }),
         });
       } else {
@@ -129,7 +130,7 @@ export default function SpotForm({
         res = await fetch('/api/spots', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...formData, latitude, longitude, image_url: imageUrl }),
+          body: JSON.stringify({ ...formData, latitude, longitude, image_url: finalImageUrl }),
         });
       }
 
