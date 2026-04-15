@@ -66,10 +66,10 @@ export default function PaymentSuccessPage() {
             Payment successful. Your account is now premium.
           </p>
           <Link
-            href="/finder"
+            href="/"
             className="inline-block rounded bg-primary px-4 py-2 font-medium text-primary-foreground"
           >
-            Go to Spot Finder
+            Go to Home
           </Link>
         </div>
       )}
@@ -78,10 +78,10 @@ export default function PaymentSuccessPage() {
         <div className="space-y-4 text-center">
           <p className="text-red-600">{error}</p>
           <Link
-            href="/payment"
+            href="/"
             className="inline-block rounded border border-border px-4 py-2 font-medium text-foreground"
           >
-            Back to payment
+            Back to home
           </Link>
         </div>
       )}

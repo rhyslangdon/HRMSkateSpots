@@ -19,6 +19,7 @@
 // =============================================================================
 
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 
@@ -110,12 +111,12 @@ export default async function DashboardPage() {
             {recentSpots.length === 0 ? (
               <div className="mt-4 text-center">
                 <p className="text-muted-foreground">You haven&apos;t added any spots yet.</p>
-                <a
-                  href="/finder"
+                <Link
+                  href="/"
                   className="mt-3 inline-block rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
                 >
                   Open the Map
-                </a>
+                </Link>
               </div>
             ) : (
               <ul className="mt-4 divide-y divide-border">
@@ -145,8 +146,8 @@ export default async function DashboardPage() {
           <div className="rounded-xl border border-border bg-background p-6">
             <h2 className="text-xl font-semibold text-foreground">Quick Actions</h2>
             <div className="mt-4 flex flex-col gap-3">
-              <a
-                href="/finder"
+              <Link
+                href="/"
                 className="flex items-center gap-3 rounded-lg border border-border p-4 transition-colors hover:bg-muted"
               >
                 <span className="text-2xl">🗺️</span>
@@ -156,8 +157,8 @@ export default async function DashboardPage() {
                     Browse and discover skate spots around HRM
                   </p>
                 </div>
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/profile"
                 className="flex items-center gap-3 rounded-lg border border-border p-4 transition-colors hover:bg-muted"
               >
@@ -168,21 +169,7 @@ export default async function DashboardPage() {
                     Update your avatar, name, and account settings
                   </p>
                 </div>
-              </a>
-              {subscriptionStatus === 'free' && (
-                <a
-                  href="/pricing"
-                  className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4 transition-colors hover:bg-primary/10"
-                >
-                  <span className="text-2xl">⭐</span>
-                  <div>
-                    <p className="font-medium text-foreground">Upgrade to Premium</p>
-                    <p className="text-xs text-muted-foreground">
-                      Unlock unlimited favourites and more features
-                    </p>
-                  </div>
-                </a>
-              )}
+              </Link>
             </div>
           </div>
         </div>

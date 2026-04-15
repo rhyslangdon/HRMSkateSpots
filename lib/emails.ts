@@ -54,7 +54,7 @@ export async function sendDowngradeEmail(to: string, name?: string | null) {
         <h1 style="color: #6366f1;">Subscription Cancelled</h1>
         <p>${greeting}</p>
         <p>Your subscription has been downgraded to the <strong>free plan</strong>.</p>
-        <p>You can re-subscribe at any time from the <a href="/payment">payment page</a>.</p>
+        <p>Premium subscriptions are currently unavailable. Keep an eye on the home page for future updates.</p>
         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
         <p style="color: #6b7280; font-size: 12px;">HRM Skate Spots Team</p>
       </div>

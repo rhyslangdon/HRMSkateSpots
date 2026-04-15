@@ -110,14 +110,7 @@ function SubscriptionSection() {
             </div>
           )}
         </>
-      ) : (
-        <Link
-          href="/payment"
-          className="mt-4 inline-block rounded-lg bg-primary px-6 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-        >
-          Upgrade to Pro
-        </Link>
-      )}
+      ) : null}
       {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
       {success && (
         <div className="text-green-600 text-sm mt-2">

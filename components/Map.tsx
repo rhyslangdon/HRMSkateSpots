@@ -1,7 +1,7 @@
 'use client';
 
 import { getSpotIconName, createSpotDivIcon } from './SpotMarkerIcon';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   MapContainer,
   TileLayer,
@@ -45,16 +45,6 @@ function ClickHandler({ onMapClick }: { onMapClick: (latlng: [number, number]) =
   return null;
 }
 
-function FlyToHandler({ target }: { target: [number, number] | null }) {
-  const map = useMap();
-  useEffect(() => {
-    if (target) {
-      map.flyTo(target, 15, { duration: 1.5 });
-    }
-  }, [map, target]);
-  return null;
-}
-
 export default function Map() {
   const { theme } = useTheme();
   const [spots, setSpots] = useState<Spot[]>([]);
@@ -69,11 +59,6 @@ export default function Map() {
   const [hiddenDifficulties, setHiddenDifficulties] = useState<Set<Difficulty>>(new Set());
   const [showFavouritesOnly, setShowFavouritesOnly] = useState(false);
   const [expandedImage, setExpandedImage] = useState<{ url: string; name: string } | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchError, setSearchError] = useState<string | null>(null);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Favourites logic
   const { addFavourite, removeFavourite, isFavourite } = useFavourites(userId);
@@ -110,6 +95,7 @@ export default function Map() {
     setHiddenTypes(new Set());
     setHiddenFeatures(new Set());
     setHiddenDifficulties(new Set());
+    setShowFavouritesOnly(false);
   }
 
   function handleHideAll() {
@@ -269,38 +255,6 @@ export default function Map() {
     if (marker) marker.openPopup();
   }, []);
 
-  async function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    const query = searchQuery.trim();
-    if (!query) return;
-    setSearchError(null);
-    setSearchLoading(true);
-    try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?${new URLSearchParams({
-          q: query,
-          format: 'json',
-          limit: '1',
-          viewbox: '-64.2,44.3,-63.0,45.0',
-          bounded: '1',
-        })}`,
-        { headers: { Accept: 'application/json' } }
-      );
-      if (!res.ok) throw new Error('Search failed');
-      const results = await res.json();
-      if (results.length === 0) {
-        setSearchError('No results found. Try a different search.');
-      } else {
-        const { lat, lon } = results[0];
-        setFlyTarget([parseFloat(lat), parseFloat(lon)]);
-      }
-    } catch {
-      setSearchError('Search failed. Please try again.');
-    } finally {
-      setSearchLoading(false);
-    }
-  }
-
   return (
     <div className="flex w-full flex-col gap-3">
       <div className="mt-6">
@@ -313,40 +267,11 @@ export default function Map() {
           onToggleDifficulty={handleToggleDifficulty}
           onReset={handleReset}
           onHideAll={handleHideAll}
+          showFavouritesOnly={showFavouritesOnly}
+          onToggleFavourites={userId ? () => setShowFavouritesOnly((value) => !value) : undefined}
         />
       </div>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <form onSubmit={handleSearch} className="flex min-w-0 flex-1 gap-2">
-          <input
-            ref={searchInputRef}
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search a location (e.g. Halifax Commons)"
-            className="min-w-0 flex-1 rounded border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-          <button
-            type="submit"
-            disabled={searchLoading || !searchQuery.trim()}
-            className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-          >
-            {searchLoading ? 'Searching...' : 'Go'}
-          </button>
-        </form>
-        {userId && (
-          <button
-            className={`whitespace-nowrap rounded border px-4 py-2 text-xs font-semibold transition-colors ${
-              showFavouritesOnly
-                ? 'border-primary bg-primary/15 text-primary'
-                : 'border-border bg-background text-foreground hover:bg-muted'
-            }`}
-            onClick={() => setShowFavouritesOnly((v) => !v)}
-          >
-            {showFavouritesOnly ? 'Show All Spots' : 'Show Favourites Only'}
-          </button>
-        )}
-      </div>
-      {searchError && <p className="text-xs text-red-500">{searchError}</p>}
+      {/* Location search is temporarily disabled. */}
       <div className="h-[500px] overflow-hidden rounded-xl border border-border shadow-sm">
         <MapContainer
           key={`map-${theme}`}
@@ -381,7 +306,6 @@ export default function Map() {
               />
             </LayersControl.BaseLayer>
           </LayersControl>
-          <FlyToHandler target={flyTarget} />
           <ClickHandler onMapClick={handleMapClick} />
           {pendingPosition && (
             <Marker position={pendingPosition} ref={pendingMarkerRef}>

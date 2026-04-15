@@ -131,12 +131,6 @@ export default function Navbar() {
               Home
             </Link>
             <Link
-              href="/pricing"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Pricing
-            </Link>
-            <Link
               href="/about"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
@@ -148,14 +142,6 @@ export default function Navbar() {
             >
               Contact
             </Link>
-            {subscriptionStatus === 'premium' && (
-              <Link
-                href="/finder"
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Spot Finder
-              </Link>
-            )}
           </div>
 
           {/* --- Desktop Auth/Profile Dropdown --- */}
@@ -292,13 +278,6 @@ export default function Navbar() {
                 Home
               </Link>
               <Link
-                href="/pricing"
-                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Pricing
-              </Link>
-              <Link
                 href="/about"
                 className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
                 onClick={() => setMobileMenuOpen(false)}
@@ -312,15 +291,6 @@ export default function Navbar() {
               >
                 Contact
               </Link>
-              {subscriptionStatus === 'premium' && (
-                <Link
-                  href="/finder"
-                  className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Spot Finder
-                </Link>
-              )}
               <hr className="my-2 border-border" />
               {isLoggedIn ? (
                 <details className="group">
