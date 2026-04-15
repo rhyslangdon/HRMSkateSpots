@@ -8,6 +8,7 @@ import 'leaflet/dist/leaflet.css';
 import SpotForm from '@/components/SpotForm';
 import MapLegend from '@/components/MapLegend';
 import SpotReviews from '@/components/SpotReviews';
+import { MotionForm, MotionMapPanel, MotionPresence } from '@/components/Motion';
 import { createClient } from '@/lib/supabase/client';
 import type { Spot, SpotType, StreetFeature, Difficulty } from '@/types';
 import { useFavourites } from '@/hooks/useFavourites';
@@ -401,41 +402,48 @@ export default function Map() {
                     maxWidth={360}
                     className="spot-popup"
                   >
-                    {isPendingPromptOpen ? (
-                      <div className="flex w-[min(16rem,calc(100vw-4.5rem))] flex-col gap-2 rounded-md bg-background p-2 text-foreground shadow sm:w-[16rem]">
-                        <p className="text-xs font-semibold">Add a spot here?</p>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleConfirmAddSpot();
-                            }}
-                            className="min-h-9 flex-1 rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700"
-                          >
-                            Add
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleCancelPin();
-                            }}
-                            className="min-h-9 flex-1 rounded-md border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <SpotForm
-                        latitude={pendingPosition[0]}
-                        longitude={pendingPosition[1]}
-                        onSaved={handleSpotSaved}
-                        onCancel={handleCancelPin}
-                        {...(editingSpot ? { initialData: editingSpot } : {})}
-                      />
-                    )}
+                    <MotionPresence>
+                      {isPendingPromptOpen ? (
+                        <MotionForm
+                          key="desktop-pending-prompt"
+                          className="mx-auto flex w-[min(16rem,calc(100vw-4.5rem))] flex-col gap-2 rounded-md bg-background p-2 text-foreground shadow sm:w-[16rem]"
+                        >
+                          <p className="text-xs font-semibold">Add a spot here?</p>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleConfirmAddSpot();
+                              }}
+                              className="min-h-9 flex-1 rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+                            >
+                              Add
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleCancelPin();
+                              }}
+                              className="min-h-9 flex-1 rounded-md border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </MotionForm>
+                      ) : (
+                        <MotionForm key="desktop-pending-form" className="flex justify-center">
+                          <SpotForm
+                            latitude={pendingPosition[0]}
+                            longitude={pendingPosition[1]}
+                            onSaved={handleSpotSaved}
+                            onCancel={handleCancelPin}
+                            {...(editingSpot ? { initialData: editingSpot } : {})}
+                          />
+                        </MotionForm>
+                      )}
+                    </MotionPresence>
                   </Popup>
                 )}
               </Marker>
@@ -452,97 +460,109 @@ export default function Map() {
             ))}
           </MapContainer>
         </div>
-        {isMobilePendingPanelOpen && pendingPosition && (
-          <div className="pointer-events-none absolute inset-x-3 bottom-4 z-[550] sm:hidden">
-            <div className="pointer-events-auto max-h-[78svh] overflow-y-auto rounded-2xl border border-border bg-background/95 p-3 shadow-2xl backdrop-blur">
-              {isPendingPromptOpen ? (
-                <div className="flex flex-col gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Add a spot here?</p>
-                    {/* <p className="mt-1 text-xs text-muted-foreground">
-                      The pin is placed. You can continue to the form or cancel.
-                    </p> */}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <button
-                      type="button"
-                      onClick={handleConfirmAddSpot}
-                      className="min-h-10 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-                    >
-                      Add
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleCancelPin}
-                      className="min-h-10 rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <SpotForm
-                  latitude={pendingPosition[0]}
-                  longitude={pendingPosition[1]}
-                  onSaved={handleSpotSaved}
-                  onCancel={handleCancelPin}
-                  mode="overlay"
-                  {...(editingSpot ? { initialData: editingSpot } : {})}
-                />
-              )}
-            </div>
-          </div>
-        )}
-        {selectedSpot && (
-          <div className="pointer-events-none absolute inset-x-3 bottom-4 z-[500] sm:inset-y-4 sm:right-4 sm:left-auto sm:w-[24rem]">
-            <div className="pointer-events-auto flex max-h-[75svh] flex-col overflow-hidden rounded-2xl border border-border bg-background/95 shadow-2xl backdrop-blur sm:h-full sm:max-h-none">
-              <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
-                <div className="min-w-0">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                    Spot details
-                  </p>
-                  <h3 className="mt-1 text-sm font-semibold leading-tight text-foreground sm:text-base">
-                    {selectedSpot.name}
-                  </h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleCloseSpotPanel}
-                  className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-full border border-border bg-background text-lg leading-none text-foreground hover:bg-muted"
-                  aria-label="Close spot details"
-                >
-                  ×
-                </button>
+        <MotionPresence>
+          {isMobilePendingPanelOpen && pendingPosition && (
+            <MotionMapPanel
+              key="mobile-pending-panel"
+              className="pointer-events-none absolute inset-x-3 bottom-4 z-[550] sm:hidden"
+            >
+              <div className="pointer-events-auto max-h-[78svh] overflow-y-auto rounded-2xl border border-border bg-background/95 p-3 shadow-2xl backdrop-blur">
+                <MotionPresence>
+                  {isPendingPromptOpen ? (
+                    <MotionForm key="mobile-pending-prompt" className="flex flex-col gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">Add a spot here?</p>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <button
+                          type="button"
+                          onClick={handleConfirmAddSpot}
+                          className="min-h-10 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                        >
+                          Add
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCancelPin}
+                          className="min-h-10 rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </MotionForm>
+                  ) : (
+                    <MotionForm key="mobile-pending-form">
+                      <SpotForm
+                        latitude={pendingPosition[0]}
+                        longitude={pendingPosition[1]}
+                        onSaved={handleSpotSaved}
+                        onCancel={handleCancelPin}
+                        mode="overlay"
+                        {...(editingSpot ? { initialData: editingSpot } : {})}
+                      />
+                    </MotionForm>
+                  )}
+                </MotionPresence>
               </div>
+            </MotionMapPanel>
+          )}
+        </MotionPresence>
+        <MotionPresence>
+          {selectedSpot && (
+            <MotionMapPanel
+              key={`selected-spot-${selectedSpot.id}`}
+              className="pointer-events-none absolute inset-x-3 bottom-4 z-[500] sm:inset-y-4 sm:right-4 sm:left-auto sm:w-[24rem]"
+            >
+              <div className="pointer-events-auto flex max-h-[75svh] flex-col overflow-hidden rounded-2xl border border-border bg-background/95 shadow-2xl backdrop-blur sm:h-full sm:max-h-none">
+                <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      Spot details
+                    </p>
+                    <h3 className="mt-1 text-sm font-semibold leading-tight text-foreground sm:text-base">
+                      {selectedSpot.name}
+                    </h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCloseSpotPanel}
+                    className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-full border border-border bg-background text-lg leading-none text-foreground hover:bg-muted"
+                    aria-label="Close spot details"
+                  >
+                    ×
+                  </button>
+                </div>
 
-              <div className="grid grid-cols-2 border-b border-border bg-muted/40 p-1.5">
-                <button
-                  type="button"
-                  onClick={() => setSpotPanelView('overview')}
-                  className={`rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${
-                    spotPanelView === 'overview'
-                      ? 'bg-background text-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  Overview
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSpotPanelView('details')}
-                  className={`rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${
-                    spotPanelView === 'details'
-                      ? 'bg-background text-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  Reviews & notes
-                </button>
-              </div>
+                <div className="grid grid-cols-2 border-b border-border bg-muted/40 p-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setSpotPanelView('overview')}
+                    className={`rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${
+                      spotPanelView === 'overview'
+                        ? 'bg-background text-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Overview
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSpotPanelView('details')}
+                    className={`rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${
+                      spotPanelView === 'details'
+                        ? 'bg-background text-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Reviews & notes
+                  </button>
+                </div>
 
-              <div className="flex-1 overflow-y-auto px-4 py-3 text-foreground">
-                {spotPanelView === 'overview' ? (
-                  <div className="flex flex-col gap-3">
+                <div className="flex-1 overflow-y-auto px-4 py-3 text-foreground">
+                  <div
+                    className={spotPanelView === 'overview' ? 'flex flex-col gap-3' : 'hidden'}
+                    aria-hidden={spotPanelView !== 'overview'}
+                  >
                     {selectedSpot.image_url && (
                       <button
                         type="button"
@@ -683,8 +703,11 @@ export default function Map() {
                       </div>
                     )}
                   </div>
-                ) : (
-                  <div className="flex flex-col gap-3">
+
+                  <div
+                    className={spotPanelView === 'details' ? 'flex flex-col gap-3' : 'hidden'}
+                    aria-hidden={spotPanelView !== 'details'}
+                  >
                     {selectedSpot.description ? (
                       <div className="rounded-xl border border-border bg-muted/30 p-3">
                         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
@@ -702,11 +725,11 @@ export default function Map() {
 
                     <SpotReviews spotId={selectedSpot.id} userId={userId} />
                   </div>
-                )}
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            </MotionMapPanel>
+          )}
+        </MotionPresence>
       </div>
       {expandedImage && (
         <div
