@@ -110,6 +110,32 @@ Hold your first sprint planning session:
 - Customize the landing page content
 - Set up your BaaS provider (Supabase, Firebase, or Clerk)
 
+## Step 8.5: Configure Production Auth Early
+
+If your team is using Supabase Auth, configure the production auth domain and SMTP provider before public testing.
+
+Recommended setup for this project:
+
+- App domain: `https://hrmskatespots.com`
+- Auth callback: `https://hrmskatespots.com/auth/callback`
+- Additional redirect URL: `https://www.hrmskatespots.com/auth/callback`
+- Sender domain: `auth.hrmskatespots.com`
+- Sender email: `no-reply@auth.hrmskatespots.com`
+
+Production auth email checklist:
+
+- Add the custom domain in Vercel
+- Configure the same root domain in Supabase Auth URL settings
+- Verify the email sender domain in Resend
+- Add Resend DNS records in Namecheap
+- Configure Supabase SMTP with the Resend SMTP host and API key
+
+If this is skipped, common symptoms include:
+
+- verification emails pointing to localhost
+- sign-up failing with a `500` from Supabase Auth
+- email delivery landing in junk because the sending domain is new or unverified
+
 ## Step 9: Replace Placeholder Branding
 
 Search the project for `HRM Skate Spots` and replace it with your actual product name. Files that contain placeholders:
