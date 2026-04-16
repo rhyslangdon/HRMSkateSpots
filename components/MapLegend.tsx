@@ -53,8 +53,10 @@ export default function MapLegend({
     <div className="rounded-lg border border-border bg-background p-3 shadow-sm transition-colors sm:p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-base font-semibold text-foreground">Map Filters</p>
-          <p className="text-xs text-muted-foreground sm:text-sm">
+          <p className="hidden text-xs sm:text-base font-semibold sm:block text-foreground">
+            Map Filters
+          </p>
+          <p className="hidden text-xs text-muted-foreground sm:block sm:text-sm">
             Toggle spot types, favourites, difficulty, and street features.
           </p>
         </div>

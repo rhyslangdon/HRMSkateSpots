@@ -355,7 +355,7 @@ export default function Map() {
       {/* Location search is temporarily disabled. */}
       <div className="relative">
         <div
-          className={`relative h-[55svh] min-h-[420px] overflow-hidden rounded-xl border border-border shadow-sm sm:h-[62svh] sm:min-h-[520px] lg:h-[68svh] lg:max-h-[820px] ${
+          className={`relative h-[65svh] min-h-[420px] overflow-hidden rounded-xl border border-border shadow-sm sm:h-[62svh] sm:min-h-[520px] lg:h-[68svh] lg:max-h-[820px] ${
             isMapOverlayOpen ? 'map-controls-hidden' : ''
           }`}
         >
@@ -363,6 +363,7 @@ export default function Map() {
             key={`map-${theme}`}
             center={HRM_CENTER}
             zoom={DEFAULT_ZOOM}
+            zoomControl={!isMobileViewport}
             scrollWheelZoom={true}
             className="h-full w-full rounded-xl"
           >
