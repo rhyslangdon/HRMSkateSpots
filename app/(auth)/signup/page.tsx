@@ -50,7 +50,7 @@ export default function SignupPage() {
     // emailRedirectTo tells Supabase: "when the user clicks the verification link
     // in the email, redirect them to /auth/callback on our site."
     // Supabase sends the email automatically — we don't use nodemailer here.
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: formData.email,
       password: formData.password,
       options: {
@@ -63,6 +63,17 @@ export default function SignupPage() {
 
     if (error) {
       setError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    // When email confirmations are enabled, Supabase may not throw an error for
+    // an already-registered email. It returns a user object with no identities
+    // instead, and no new auth/profile row is created.
+    if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+      setError(
+        'An account with this email already exists. Try logging in or resetting your password.'
+      );
       setLoading(false);
       return;
     }
