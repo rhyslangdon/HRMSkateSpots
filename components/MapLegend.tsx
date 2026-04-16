@@ -50,7 +50,7 @@ export default function MapLegend({
     hiddenTypes.size === SPOT_TYPES.length && hiddenDifficulties.size === DIFFICULTIES.length;
 
   return (
-    <div className="rounded-lg border border-border bg-background p-3 shadow-sm transition-colors sm:p-4">
+    <div className="transition-colors sm:rounded-lg sm:border sm:border-border sm:bg-background sm:p-4 sm:shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="hidden text-xs sm:text-base font-semibold sm:block text-foreground">
