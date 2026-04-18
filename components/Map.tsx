@@ -2,13 +2,23 @@
 
 import { getSpotIconName, createSpotDivIcon } from './SpotMarkerIcon';
 import { useEffect, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, LayersControl } from 'react-leaflet';
+import {
+  Circle,
+  LayersControl,
+  MapContainer,
+  Marker,
+  Popup,
+  TileLayer,
+  useMap,
+  useMapEvents,
+} from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import SpotForm from '@/components/SpotForm';
 import MapLegend from '@/components/MapLegend';
 import SpotReviews from '@/components/SpotReviews';
 import { MotionForm, MotionMapPanel, MotionPresence } from '@/components/Motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
 import type { Spot, SpotType, StreetFeature, Difficulty } from '@/types';
@@ -31,6 +41,14 @@ L.Icon.Default.mergeOptions({
 // Center on Halifax Regional Municipality
 const HRM_CENTER: [number, number] = [44.6488, -63.5752];
 const DEFAULT_ZOOM = 12;
+const LOCATION_FOCUS_ZOOM = 15;
+
+const userLocationIcon = L.divIcon({
+  className: 'user-location-marker',
+  html: '<span class="user-location-marker__dot" aria-hidden="true"></span>',
+  iconSize: [18, 18],
+  iconAnchor: [9, 9],
+});
 
 function ClickHandler({ onMapClick }: { onMapClick: (latlng: [number, number]) => void }) {
   useMapEvents({
@@ -38,6 +56,29 @@ function ClickHandler({ onMapClick }: { onMapClick: (latlng: [number, number]) =
       onMapClick([e.latlng.lat, e.latlng.lng]);
     },
   });
+  return null;
+}
+
+function MapViewportController({
+  target,
+  zoom = LOCATION_FOCUS_ZOOM,
+}: {
+  target: [number, number] | null;
+  zoom?: number;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!target) {
+      return;
+    }
+
+    map.flyTo(target, Math.max(map.getZoom(), zoom), {
+      animate: true,
+      duration: 0.75,
+    });
+  }, [map, target, zoom]);
+
   return null;
 }
 
@@ -55,9 +96,22 @@ function getMobileViewportServerSnapshot() {
   return false;
 }
 
+function formatSpotLabel(value: string) {
+  return value
+    .split('_')
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(' ');
+}
+
 export default function Map() {
   const { theme } = useTheme();
+  const reduceMotion = useReducedMotion();
   const [spots, setSpots] = useState<Spot[]>([]);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [userLocationAccuracy, setUserLocationAccuracy] = useState<number | null>(null);
+  const [userLocationFocusTarget, setUserLocationFocusTarget] = useState<[number, number] | null>(
+    null
+  );
   const [pendingPosition, setPendingPosition] = useState<[number, number] | null>(null);
   const [pendingPanelMode, setPendingPanelMode] = useState<'prompt' | 'form'>('prompt');
   const [userId, setUserId] = useState<string | null>(null);
@@ -72,6 +126,8 @@ export default function Map() {
   const [showFavouritesOnly, setShowFavouritesOnly] = useState(false);
   const [expandedImage, setExpandedImage] = useState<{ url: string; name: string } | null>(null);
   const pendingMarkerRef = useRef<L.Marker | null>(null);
+  const geolocationWatchIdRef = useRef<number | null>(null);
+  const shouldFocusNextUserLocationRef = useRef(true);
   const isMobileViewport = useSyncExternalStore(
     subscribeToMobileViewport,
     getMobileViewportSnapshot,
@@ -228,6 +284,14 @@ export default function Map() {
     return () => window.cancelAnimationFrame(animationFrameId);
   }, [isMobileViewport, pendingPanelMode, pendingPosition]);
 
+  useEffect(() => {
+    return () => {
+      if (geolocationWatchIdRef.current !== null && typeof navigator !== 'undefined') {
+        navigator.geolocation.clearWatch(geolocationWatchIdRef.current);
+      }
+    };
+  }, []);
+
   function handleMapClick(latlng: [number, number]) {
     setSelectedSpotId(null);
     setSpotPanelView('overview');
@@ -235,6 +299,61 @@ export default function Map() {
     setPendingPosition(latlng);
     setPendingPanelMode('prompt');
   }
+
+  function handleLocateUser() {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      toast.error('Location is unavailable in this browser.');
+      return;
+    }
+
+    const handleSuccess = (position: GeolocationPosition) => {
+      const nextLocation: [number, number] = [position.coords.latitude, position.coords.longitude];
+
+      setUserLocation(nextLocation);
+      setUserLocationAccuracy(position.coords.accuracy);
+
+      if (shouldFocusNextUserLocationRef.current) {
+        shouldFocusNextUserLocationRef.current = false;
+        setUserLocationFocusTarget(nextLocation);
+      }
+    };
+
+    const handleError = (error: GeolocationPositionError) => {
+      if (error.code === error.PERMISSION_DENIED) {
+        toast.error('Location permission was denied.');
+        return;
+      }
+
+      if (error.code === error.TIMEOUT) {
+        toast.error('Timed out while finding your location.');
+        return;
+      }
+
+      toast.error('Could not determine your location.');
+    };
+
+    navigator.geolocation.getCurrentPosition(handleSuccess, handleError, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 60000,
+    });
+
+    if (geolocationWatchIdRef.current === null) {
+      geolocationWatchIdRef.current = navigator.geolocation.watchPosition(
+        handleSuccess,
+        handleError,
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 30000,
+        }
+      );
+    }
+  }
+
+  useEffect(() => {
+    handleLocateUser();
+  }, []);
 
   function handleSpotSaved() {
     setPendingPosition(null);
@@ -367,6 +486,7 @@ export default function Map() {
             scrollWheelZoom={true}
             className="h-full w-full rounded-xl"
           >
+            <MapViewportController target={userLocationFocusTarget} zoom={LOCATION_FOCUS_ZOOM} />
             <LayersControl position="topright">
               <LayersControl.BaseLayer checked={theme === 'light'} name="Simple">
                 <TileLayer
@@ -394,6 +514,30 @@ export default function Map() {
               </LayersControl.BaseLayer>
             </LayersControl>
             <ClickHandler onMapClick={handleMapClick} />
+            {userLocation && (
+              <>
+                <Circle
+                  center={userLocation}
+                  radius={userLocationAccuracy ?? 25}
+                  pathOptions={{
+                    color: '#2563eb',
+                    fillColor: '#60a5fa',
+                    fillOpacity: 0.18,
+                    weight: 1,
+                  }}
+                />
+                <Marker position={userLocation} icon={userLocationIcon}>
+                  <Popup className="spot-popup">
+                    <div className="w-44">
+                      <p className="text-sm font-semibold">Your location</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Accuracy {Math.round(userLocationAccuracy ?? 0)} m
+                      </p>
+                    </div>
+                  </Popup>
+                </Marker>
+              </>
+            )}
             {pendingPosition && (
               <Marker
                 position={pendingPosition}
@@ -563,171 +707,232 @@ export default function Map() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto px-4 py-3 text-foreground">
-                  <div
-                    className={spotPanelView === 'overview' ? 'flex flex-col gap-3' : 'hidden'}
-                    aria-hidden={spotPanelView !== 'overview'}
-                  >
-                    {selectedSpot.image_url && (
-                      <button
-                        type="button"
-                        className="h-40 w-full cursor-pointer rounded-xl border-0 bg-transparent p-0 object-cover focus:outline-none"
-                        onClick={() =>
-                          openImagePreview(selectedSpot.image_url as string, selectedSpot.name)
-                        }
-                        title="Click to view larger"
-                        aria-label="View larger image"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            openImagePreview(selectedSpot.image_url as string, selectedSpot.name);
-                          }
-                        }}
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={selectedSpot.image_url}
-                          alt={selectedSpot.name}
-                          className="h-40 w-full rounded-xl object-cover"
-                        />
-                      </button>
-                    )}
-
-                    <div className="flex flex-wrap gap-1.5">
-                      <span className="rounded-full bg-sky-500/60 px-2.5 py-1 text-xs font-medium text-white sm:text-sm">
-                        {selectedSpot.spot_type}
-                      </span>
-                      {selectedSpot.street_feature && (
-                        <span className="rounded-full bg-purple-500/60 px-2.5 py-1 text-xs font-medium text-white sm:text-sm">
-                          {selectedSpot.street_feature}
-                        </span>
-                      )}
-                      <span className="rounded-full bg-emerald-500/60 px-2.5 py-1 text-xs font-medium text-white sm:text-sm">
-                        {selectedSpot.difficulty}
-                      </span>
-                      <span className="rounded-full bg-amber-500/70 px-2.5 py-1 text-xs font-medium text-white sm:text-sm">
-                        Bust {selectedSpot.bust_factor}/5
-                      </span>
-                    </div>
-
-                    {selectedSpot.address && (
-                      <p className="text-sm leading-relaxed text-muted-foreground">
-                        {selectedSpot.address}
-                      </p>
-                    )}
-
-                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                      {userId && (
+                  <div className="relative min-h-full">
+                    <motion.div
+                      initial={false}
+                      animate={
+                        spotPanelView === 'overview'
+                          ? { opacity: 1, x: 0, scale: 1 }
+                          : {
+                              opacity: 0,
+                              x: reduceMotion ? 0 : -12,
+                              scale: reduceMotion ? 1 : 0.985,
+                            }
+                      }
+                      transition={
+                        reduceMotion ? { duration: 0.01 } : { duration: 0.28, ease: 'easeOut' }
+                      }
+                      className={
+                        spotPanelView === 'overview'
+                          ? 'relative flex flex-col gap-4'
+                          : 'pointer-events-none absolute inset-0 flex flex-col gap-4 overflow-hidden'
+                      }
+                      aria-hidden={spotPanelView !== 'overview'}
+                    >
+                      {selectedSpot.image_url && (
                         <button
                           type="button"
-                          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-border px-3 py-2 text-sm font-semibold text-primary hover:bg-primary/5"
-                          aria-label={
-                            isFavourite(selectedSpot.id)
-                              ? 'Remove from favourites'
-                              : 'Add to favourites'
+                          className="h-44 w-full cursor-pointer rounded-xl border-0 bg-transparent p-0 object-cover focus:outline-none sm:h-40"
+                          onClick={() =>
+                            openImagePreview(selectedSpot.image_url as string, selectedSpot.name)
                           }
-                          onClick={async () => {
-                            setFavError(null);
-                            if (isFavourite(selectedSpot.id)) {
-                              await removeFavourite(selectedSpot.id);
-                            } else {
-                              const { error } = await addFavourite(selectedSpot.id);
-                              if (error) {
-                                setFavError(error.message || 'Could not add favourite.');
-                              }
+                          title="Click to view larger"
+                          aria-label="View larger image"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              openImagePreview(selectedSpot.image_url as string, selectedSpot.name);
                             }
                           }}
                         >
-                          {isFavourite(selectedSpot.id) ? (
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                              className="h-5 w-5"
-                            >
-                              <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
-                            </svg>
-                          ) : (
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 20 20"
-                              stroke="currentColor"
-                              className="h-5 w-5"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                              />
-                            </svg>
-                          )}
-                          {isFavourite(selectedSpot.id) ? 'Saved' : 'Save'}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={selectedSpot.image_url}
+                            alt={selectedSpot.name}
+                            className="h-44 w-full rounded-xl object-cover sm:h-40"
+                          />
                         </button>
                       )}
-                    </div>
 
-                    {favError && <div className="text-sm text-red-500">{favError}</div>}
-
-                    {userId && (selectedSpot.user_id === userId || userRole === 'admin') && (
-                      <div className="flex flex-col gap-2 pt-1 sm:flex-row">
-                        <button
-                          className="min-h-10 rounded-xl border border-border bg-muted px-3 py-2 text-sm font-semibold text-foreground hover:bg-muted/80"
-                          onClick={() => handleEditSpot(selectedSpot)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="min-h-10 rounded-xl bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700"
-                          onClick={() => handleDeleteSpot(selectedSpot)}
-                        >
-                          Delete
-                        </button>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="rounded-xl border border-border bg-muted/35 p-3">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                            Type
+                          </p>
+                          <p className="mt-1 text-sm font-semibold text-foreground">
+                            {formatSpotLabel(selectedSpot.spot_type)}
+                          </p>
+                        </div>
+                        <div className="rounded-xl border border-border bg-muted/35 p-3">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                            Difficulty
+                          </p>
+                          <p className="mt-1 text-sm font-semibold text-foreground">
+                            {formatSpotLabel(selectedSpot.difficulty)}
+                          </p>
+                        </div>
+                        <div className="rounded-xl border border-border bg-muted/35 p-3">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                            Feature
+                          </p>
+                          <p className="mt-1 text-sm font-semibold text-foreground">
+                            {selectedSpot.street_feature
+                              ? formatSpotLabel(selectedSpot.street_feature)
+                              : 'N/A'}
+                          </p>
+                        </div>
+                        <div className="rounded-xl border border-border bg-muted/35 p-3">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                            Bust factor
+                          </p>
+                          <p className="mt-1 text-sm font-semibold text-foreground">
+                            {selectedSpot.bust_factor}/5
+                          </p>
+                        </div>
                       </div>
-                    )}
 
-                    {deleteSpot && deleteSpot.id === selectedSpot.id && (
-                      <div className="rounded-xl border border-border bg-background p-3 shadow">
-                        <p className="text-base text-foreground">
-                          Delete <span className="font-bold">{deleteSpot.name}</span>?
-                        </p>
-                        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                      {selectedSpot.address && (
+                        <div className="rounded-xl border border-border bg-background p-3">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                            Address
+                          </p>
+                          <p className="mt-1.5 text-sm leading-relaxed text-foreground">
+                            {selectedSpot.address}
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="flex flex-col gap-2 border-t border-border pt-1 sm:flex-row sm:flex-wrap sm:border-t-0 sm:pt-0">
+                        {userId && (
                           <button
-                            className="min-h-10 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600"
-                            onClick={confirmDeleteSpot}
+                            type="button"
+                            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-semibold text-primary hover:bg-primary/5"
+                            aria-label={
+                              isFavourite(selectedSpot.id)
+                                ? 'Remove from favourites'
+                                : 'Add to favourites'
+                            }
+                            onClick={async () => {
+                              setFavError(null);
+                              if (isFavourite(selectedSpot.id)) {
+                                await removeFavourite(selectedSpot.id);
+                              } else {
+                                const { error } = await addFavourite(selectedSpot.id);
+                                if (error) {
+                                  setFavError(error.message || 'Could not add favourite.');
+                                }
+                              }
+                            }}
+                          >
+                            {isFavourite(selectedSpot.id) ? (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                                className="h-5 w-5"
+                              >
+                                <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
+                              </svg>
+                            ) : (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 20 20"
+                                stroke="currentColor"
+                                className="h-5 w-5"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                                />
+                              </svg>
+                            )}
+                            {isFavourite(selectedSpot.id) ? 'Saved' : 'Save'}
+                          </button>
+                        )}
+                      </div>
+
+                      {favError && <div className="text-sm text-red-500">{favError}</div>}
+
+                      {userId && (selectedSpot.user_id === userId || userRole === 'admin') && (
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                          <button
+                            className="min-h-11 rounded-xl border border-border bg-muted px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-muted/80"
+                            onClick={() => handleEditSpot(selectedSpot)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="min-h-11 rounded-xl bg-red-600 px-3 py-2.5 text-sm font-semibold text-white hover:bg-red-700"
+                            onClick={() => handleDeleteSpot(selectedSpot)}
                           >
                             Delete
                           </button>
-                          <button
-                            className="min-h-10 rounded-xl border border-border bg-muted px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted/80"
-                            onClick={cancelDeleteSpot}
-                          >
-                            Cancel
-                          </button>
                         </div>
-                      </div>
-                    )}
-                  </div>
+                      )}
 
-                  <div
-                    className={spotPanelView === 'details' ? 'flex flex-col gap-3' : 'hidden'}
-                    aria-hidden={spotPanelView !== 'details'}
-                  >
-                    {selectedSpot.description ? (
-                      <div className="rounded-xl border border-border bg-muted/30 p-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                          Description
-                        </p>
-                        <p className="mt-2 whitespace-pre-line break-words text-sm leading-relaxed text-foreground">
-                          {selectedSpot.description}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="rounded-xl border border-dashed border-border bg-muted/20 p-3 text-sm text-muted-foreground">
-                        No description added for this spot yet.
-                      </div>
-                    )}
+                      {deleteSpot && deleteSpot.id === selectedSpot.id && (
+                        <div className="rounded-xl border border-border bg-background p-3 shadow">
+                          <p className="text-base text-foreground">
+                            Delete <span className="font-bold">{deleteSpot.name}</span>?
+                          </p>
+                          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                            <button
+                              className="min-h-10 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600"
+                              onClick={confirmDeleteSpot}
+                            >
+                              Delete
+                            </button>
+                            <button
+                              className="min-h-10 rounded-xl border border-border bg-muted px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted/80"
+                              onClick={cancelDeleteSpot}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </motion.div>
 
-                    <SpotReviews spotId={selectedSpot.id} userId={userId} />
+                    <motion.div
+                      initial={false}
+                      animate={
+                        spotPanelView === 'details'
+                          ? { opacity: 1, x: 0, scale: 1 }
+                          : {
+                              opacity: 0,
+                              x: reduceMotion ? 0 : 12,
+                              scale: reduceMotion ? 1 : 0.985,
+                            }
+                      }
+                      transition={
+                        reduceMotion ? { duration: 0.01 } : { duration: 0.28, ease: 'easeOut' }
+                      }
+                      className={
+                        spotPanelView === 'details'
+                          ? 'relative flex flex-col gap-4'
+                          : 'pointer-events-none absolute inset-0 flex flex-col gap-4 overflow-hidden'
+                      }
+                      aria-hidden={spotPanelView !== 'details'}
+                    >
+                      {selectedSpot.description ? (
+                        <div className="rounded-xl border border-border bg-muted/30 p-3">
+                          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                            Description
+                          </p>
+                          <p className="mt-2 whitespace-pre-line break-words text-sm leading-relaxed text-foreground">
+                            {selectedSpot.description}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="rounded-xl border border-dashed border-border bg-muted/20 p-3 text-sm text-muted-foreground">
+                          No description added for this spot yet.
+                        </div>
+                      )}
+
+                      <SpotReviews spotId={selectedSpot.id} userId={userId} />
+                    </motion.div>
                   </div>
                 </div>
               </div>

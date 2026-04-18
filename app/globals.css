@@ -28,8 +28,38 @@
   will-change: opacity;
 }
 
+@keyframes user-location-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgb(37 99 235 / 0.35);
+  }
+
+  100% {
+    box-shadow: 0 0 0 12px rgb(37 99 235 / 0);
+  }
+}
+
+.user-location-marker {
+  background: transparent;
+  border: 0;
+}
+
+.user-location-marker__dot {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border: 3px solid #fff;
+  border-radius: 999px;
+  background: #2563eb;
+  box-shadow: 0 0 0 1px rgb(37 99 235 / 0.55);
+  animation: user-location-pulse 1.8s ease-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .spot-marker-icon__inner {
+    animation: none;
+  }
+
+  .user-location-marker__dot {
     animation: none;
   }
 }
