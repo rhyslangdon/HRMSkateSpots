@@ -3,7 +3,13 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Pricing',
-  description: 'Pricing is temporarily unavailable on HRM Skate Spots.',
+  description:
+    'Learn about pricing and premium feature availability for HRM Skate Spots, the Halifax skate spot discovery map.',
+  keywords: [
+    'HRM Skate Spots pricing',
+    'Halifax skate map premium',
+    'skate spot app pricing Halifax',
+  ],
 };
 
 export default function PricingPage() {

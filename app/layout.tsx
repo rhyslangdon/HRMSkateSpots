@@ -31,6 +31,8 @@ import { SubscriptionProvider } from '@/components/SubscriptionContext';
 import { ThemeProvider } from '@/components/ThemeContext';
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration';
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.hrmskatespots.com';
+
 // --- Font Configuration ---
 // next/font automatically optimizes fonts — no external requests at runtime.
 // The font is loaded at build time and served as a local asset.
@@ -44,11 +46,44 @@ const inter = Inter({
 // STUDENT: Replace these placeholder values with your actual app information.
 // See /docs/performance.md for more on metadata and SEO.
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: 'HRM Skate Spots',
     template: '%s | HRM Skate Spots',
   },
-  description: '[Your app description — explain what your SaaS product does]',
+  icons: {
+    icon: '/bearingLogo.png',
+    shortcut: '/bearingLogo.png',
+    apple: '/bearingLogo.png',
+  },
+  description:
+    'Discover skate spots, street spots, skateparks, and DIY locations across Halifax Regional Municipality with community reviews, photos, and local skate info.',
+  keywords: [
+    'HRM skate spots',
+    'Halifax skate spots',
+    'Halifax skateboarding',
+    'Nova Scotia skate spots',
+    'Halifax skatepark map',
+    'street skating Halifax',
+    'DIY skate spots Halifax',
+    'Halifax skateboard spots',
+    'skate spots near me Halifax',
+    'HRM skateboard map',
+  ],
+  openGraph: {
+    title: 'HRM Skate Spots',
+    description:
+      'Discover skate spots, street spots, skateparks, and DIY locations across Halifax Regional Municipality.',
+    type: 'website',
+    siteName: 'HRM Skate Spots',
+    url: siteUrl,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'HRM Skate Spots',
+    description:
+      'Find skate spots, skateparks, and street skating locations across Halifax Regional Municipality.',
+  },
 };
 
 export default async function RootLayout({

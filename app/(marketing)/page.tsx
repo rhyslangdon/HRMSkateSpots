@@ -18,8 +18,17 @@ import Link from 'next/link';
 import MapWrapper from '@/components/MapWrapper';
 
 export const metadata: Metadata = {
-  title: 'HRM Skate Spots — [Your Tagline Here]',
-  description: '[Describe what your SaaS product does in 1-2 sentences for SEO]',
+  title: 'Halifax Skate Spots Map',
+  description:
+    'Explore a community-driven map of Halifax skate spots, skateparks, rails, ledges, gaps, and DIY skate locations across HRM.',
+  keywords: [
+    'Halifax skate spots map',
+    'HRM skate spots map',
+    'Halifax skatepark map',
+    'street skate spots Halifax',
+    'Halifax rails ledges stairs skateboarding',
+    'Nova Scotia skateboard spots',
+  ],
 };
 
 export default function HomePage() {

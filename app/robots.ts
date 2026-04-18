@@ -1,5 +1,7 @@
 import type { MetadataRoute } from 'next';
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.hrmskatespots.com';
+
 /**
  * Next.js automatically serves a robots.txt at `/robots.txt` when this file
  * exists in the `app/` directory. The function below returns a typed object
@@ -35,5 +37,6 @@ export default function robots(): MetadataRoute.Robots {
         '/api/',
       ],
     },
+    sitemap: `${siteUrl}/sitemap.xml`,
   };
 }

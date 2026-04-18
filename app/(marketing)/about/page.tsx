@@ -13,7 +13,14 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'About',
-  description: 'Learn about HRM Skate Spots — our mission, team, and story.',
+  description:
+    'Learn about HRM Skate Spots, the Halifax skateboarding community map built to help skaters discover and share spots across HRM.',
+  keywords: [
+    'about HRM Skate Spots',
+    'Halifax skateboarding community',
+    'HRM skate community',
+    'Halifax skateboard map',
+  ],
 };
 
 // STUDENT: Replace with your actual team members
