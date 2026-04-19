@@ -34,7 +34,7 @@ function buildContentSecurityPolicy(nonce: string) {
     scriptSrcElem,
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com",
     "font-src 'self' https://fonts.gstatic.com data:",
-    "img-src 'self' data: blob: https://*.supabase.co https://unpkg.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://fonts.gstatic.com",
+    "img-src 'self' data: blob: https://*.supabase.co https://unpkg.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://server.arcgisonline.com https://fonts.gstatic.com",
     connectSrc,
     "worker-src 'self' blob:",
     "manifest-src 'self'",

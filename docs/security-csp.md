@@ -22,7 +22,7 @@ Every matched request gets a `Content-Security-Policy` header.
 | `script-src` | `'self' 'nonce-<per-request>' 'strict-dynamic'` | Runs only trusted scripts (same-origin + nonce-approved runtime scripts). |
 | `style-src` | `'self' 'unsafe-inline' https://fonts.googleapis.com` | Allows app styles and Google Fonts stylesheet; inline styles are still needed by current UI libraries. |
 | `font-src` | `'self' https://fonts.gstatic.com data:` | Allows local fonts and Google font files. |
-| `img-src` | `'self' data: blob: https://*.supabase.co https://unpkg.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com` | Allows app images, Supabase storage, and map/marker assets. |
+| `img-src` | `'self' data: blob: https://*.supabase.co https://unpkg.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://server.arcgisonline.com` | Allows app images, Supabase storage, Leaflet marker assets, and map tiles including Esri satellite imagery. |
 | `connect-src` | `'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org` | Allows API calls, Supabase HTTPS/WebSocket traffic, and geocoding requests. |
 | `worker-src` | `'self' blob:` | Allows service worker and blob workers. |
 | `manifest-src` | `'self'` | Manifest can only be loaded from this app. |
