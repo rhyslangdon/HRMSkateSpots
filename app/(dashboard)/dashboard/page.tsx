@@ -44,11 +44,7 @@ export default async function DashboardPage() {
   const [spotsResult, favouritesResult, profileResult, recentSpotsResult] = await Promise.all([
     supabase.from('spots').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
     supabase.from('favourites').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
-    supabase
-      .from('profiles')
-      .select('display_name, subscription_status, created_at')
-      .eq('id', user.id)
-      .single(),
+    supabase.from('profiles').select('display_name, created_at').eq('id', user.id).single(),
     supabase
       .from('spots')
       .select('id, name, spot_type, difficulty, created_at')
@@ -68,7 +64,7 @@ export default async function DashboardPage() {
       })
     : 'Unknown';
   const displayName = profileResult.data?.display_name || user.email;
-  const subscriptionStatus = profileResult.data?.subscription_status ?? 'free';
+  // const subscriptionStatus = profileResult.data?.subscription_status ?? 'free';
 
   return (
     <div className="px-4 py-10 sm:px-6 lg:px-8">
@@ -95,12 +91,12 @@ export default async function DashboardPage() {
             <p className="text-sm font-medium text-muted-foreground">Member Since</p>
             <p className="mt-2 text-lg font-bold text-foreground">{joinedAt}</p>
           </div>
-          <div className="rounded-xl border border-border bg-background p-6">
+          {/* <div className="rounded-xl border border-border bg-background p-6">
             <p className="text-sm font-medium text-muted-foreground">Subscription</p>
             <p className="mt-2 text-3xl font-bold text-foreground capitalize">
               {subscriptionStatus}
             </p>
-          </div>
+          </div> */}
         </div>
 
         {/* --- Main Content Area --- */}

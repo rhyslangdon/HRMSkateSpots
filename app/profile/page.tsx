@@ -20,106 +20,106 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSubscription } from '@/components/SubscriptionContext';
+// import { useSubscription } from '@/components/SubscriptionContext';
 import { useTheme } from '@/components/ThemeContext';
 import AvatarUpload from '@/components/AvatarUpload';
 
-function SubscriptionSection() {
-  const { status, setStatus, refreshStatus } = useSubscription();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+// function SubscriptionSection() {
+//   const { status, setStatus, refreshStatus } = useSubscription();
+//   const [loading, setLoading] = useState(false);
+//   const [error, setError] = useState('');
+//   const [success, setSuccess] = useState(false);
+//   const [showConfirm, setShowConfirm] = useState(false);
 
-  const handleRemovePremium = async () => {
-    setLoading(true);
-    setError('');
-    setSuccess(false);
-    try {
-      const response = await fetch('/api/subscription/downgrade', {
-        method: 'POST',
-      });
+//   const handleRemovePremium = async () => {
+//     setLoading(true);
+//     setError('');
+//     setSuccess(false);
+//     try {
+//       const response = await fetch('/api/subscription/downgrade', {
+//         method: 'POST',
+//       });
 
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(payload?.error || 'Failed to cancel subscription.');
-      }
+//       if (!response.ok) {
+//         const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+//         throw new Error(payload?.error || 'Failed to cancel subscription.');
+//       }
 
-      setStatus('free');
-      setSuccess(true);
-      setShowConfirm(false);
-      await refreshStatus();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to remove premium.';
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  };
+//     setStatus('free');
+//     setSuccess(true);
+//     setShowConfirm(false);
+//     await refreshStatus();
+//   } catch (err) {
+//     const message = err instanceof Error ? err.message : 'Failed to remove premium.';
+//     setError(message);
+//   } finally {
+//     setLoading(false);
+//   }
+// };
 
-  if (status === null) return <div className="mt-4">Loading subscription...</div>;
+// if (status === null) return <div className="mt-4">Loading subscription...</div>;
 
-  return (
-    <div className="mt-4">
-      <div className="flex items-center gap-3">
-        <span className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
-          {status === 'premium' ? 'Premium Plan' : 'Free Plan'}
-        </span>
-      </div>
-      <p className="mt-4 text-sm text-muted-foreground">
-        {status === 'premium'
-          ? 'You are currently on the Premium plan. Enjoy all features!'
-          : 'You are currently on the Free plan. Upgrade to unlock premium features.'}
-      </p>
-      {status === 'premium' ? (
-        <>
-          <button
-            onClick={() => setShowConfirm(true)}
-            className="mt-4 inline-block rounded-lg bg-red-600 text-white px-6 py-2 text-sm font-medium transition-colors hover:bg-red-700 disabled:opacity-60"
-            disabled={loading}
-          >
-            Remove Premium
-          </button>
-          {showConfirm && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-              <div className="bg-background border border-border rounded-xl shadow-xl p-8 max-w-sm w-full flex flex-col items-center">
-                <h3 className="text-lg font-semibold mb-2 text-center">
-                  Remove Premium Subscription?
-                </h3>
-                <p className="text-sm text-muted-foreground mb-6 text-center">
-                  Are you sure you want to remove your premium subscription and return to the free
-                  plan? This action is immediate.
-                </p>
-                <div className="flex gap-4 w-full justify-center">
-                  <button
-                    onClick={handleRemovePremium}
-                    className="rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-medium transition-colors hover:bg-red-700 disabled:opacity-60"
-                    disabled={loading}
-                  >
-                    {loading ? 'Removing...' : 'Yes, Remove'}
-                  </button>
-                  <button
-                    onClick={() => setShowConfirm(false)}
-                    className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-                    disabled={loading}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </>
-      ) : null}
-      {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
-      {success && (
-        <div className="text-green-600 text-sm mt-2">
-          Premium removed. You are now on the Free plan.
-        </div>
-      )}
-    </div>
-  );
-}
+//   return (
+//     <div className="mt-4">
+//       <div className="flex items-center gap-3">
+//         {/* <span className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
+//           {status === 'premium' ? 'Premium Plan' : 'Free Plan'}
+//         </span> */}
+//       </div>
+//       <p className="mt-4 text-sm text-muted-foreground">
+//         {status === 'premium'
+//           ? 'You are currently on the Premium plan. Enjoy all features!'
+//           : 'You are currently on the Free plan. Upgrade to unlock premium features.'}
+//       </p>
+//       {status === 'premium' ? (
+//         <>
+//           <button
+//             onClick={() => setShowConfirm(true)}
+//             className="mt-4 inline-block rounded-lg bg-red-600 text-white px-6 py-2 text-sm font-medium transition-colors hover:bg-red-700 disabled:opacity-60"
+//             disabled={loading}
+//           >
+//             Remove Premium
+//           </button>
+//           {showConfirm && (
+//             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+//               <div className="bg-background border border-border rounded-xl shadow-xl p-8 max-w-sm w-full flex flex-col items-center">
+//                 <h3 className="text-lg font-semibold mb-2 text-center">
+//                   Remove Premium Subscription?
+//                 </h3>
+//                 <p className="text-sm text-muted-foreground mb-6 text-center">
+//                   Are you sure you want to remove your premium subscription and return to the free
+//                   plan? This action is immediate.
+//                 </p>
+//                 <div className="flex gap-4 w-full justify-center">
+//                   <button
+//                     onClick={handleRemovePremium}
+//                     className="rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-medium transition-colors hover:bg-red-700 disabled:opacity-60"
+//                     disabled={loading}
+//                   >
+//                     {loading ? 'Removing...' : 'Yes, Remove'}
+//                   </button>
+//                   <button
+//                     onClick={() => setShowConfirm(false)}
+//                     className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+//                     disabled={loading}
+//                   >
+//                     Cancel
+//                   </button>
+//                 </div>
+//               </div>
+//             </div>
+//           )}
+//         </>
+//       ) : null}
+//       {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
+//       {success && (
+//         <div className="text-green-600 text-sm mt-2">
+//           Premium removed. You are now on the Free plan.
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
 
 function DeleteAccountSection() {
   const router = useRouter();
@@ -247,7 +247,14 @@ export default function ProfilePage() {
           >
             <span>Toggle theme</span>
           </button>
+          <Link
+            href="/dashboard"
+            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+          >
+            View Your Dashboard
+          </Link>
         </div>
+
         <p className="mt-2 text-muted-foreground">Manage your profile and preferences.</p>
 
         {/* --- Profile Information --- */}
@@ -270,7 +277,7 @@ export default function ProfilePage() {
                 type="text"
                 id="profile-name"
                 defaultValue=""
-                placeholder="[User's Name]"
+                placeholder="Jane Doe"
                 className="mt-2 block w-full rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
@@ -284,7 +291,7 @@ export default function ProfilePage() {
                 type="email"
                 id="profile-email"
                 defaultValue=""
-                placeholder="[User's Email]"
+                placeholder="example@email.com"
                 className="mt-2 block w-full rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
@@ -302,10 +309,10 @@ export default function ProfilePage() {
         {/* --- Subscription Status --- */}
         {/* STUDENT: Replace this with real subscription data from your database.
             See /docs/payments.md for implementing the freemium model. */}
-        <section className="mt-8 rounded-xl border border-border bg-background p-6">
+        {/* <section className="mt-8 rounded-xl border border-border bg-background p-6">
           <h2 className="text-xl font-semibold text-foreground">Subscription</h2>
           <SubscriptionSection />
-        </section>
+        </section> */}
 
         <DeleteAccountSection />
       </div>

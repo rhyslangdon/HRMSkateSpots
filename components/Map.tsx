@@ -124,6 +124,7 @@ export default function Map() {
   const [hiddenFeatures, setHiddenFeatures] = useState<Set<StreetFeature>>(new Set());
   const [hiddenDifficulties, setHiddenDifficulties] = useState<Set<Difficulty>>(new Set());
   const [showFavouritesOnly, setShowFavouritesOnly] = useState(false);
+  const [showSecretOnly, setShowSecretOnly] = useState(false);
   const [expandedImage, setExpandedImage] = useState<{ url: string; name: string } | null>(null);
   const pendingMarkerRef = useRef<L.Marker | null>(null);
   const geolocationWatchIdRef = useRef<number | null>(null);
@@ -170,6 +171,7 @@ export default function Map() {
     setHiddenFeatures(new Set());
     setHiddenDifficulties(new Set());
     setShowFavouritesOnly(false);
+    setShowSecretOnly(false);
   }
 
   function handleHideAll() {
@@ -179,9 +181,8 @@ export default function Map() {
   }
 
   const visibleSpots = spots.filter((s) => {
-    if (showFavouritesOnly && userId) {
-      return isFavourite(s.id);
-    }
+    if (showFavouritesOnly && userId && !isFavourite(s.id)) return false;
+    if (showSecretOnly && !s.is_secret) return false;
     if (hiddenTypes.has(s.spot_type)) return false;
     if (s.spot_type === 'street' && s.street_feature && hiddenFeatures.has(s.street_feature))
       return false;
@@ -469,6 +470,8 @@ export default function Map() {
           onHideAll={handleHideAll}
           showFavouritesOnly={showFavouritesOnly}
           onToggleFavourites={userId ? () => setShowFavouritesOnly((value) => !value) : undefined}
+          showSecretOnly={showSecretOnly}
+          onToggleSecret={userId ? () => setShowSecretOnly((value) => !value) : undefined}
         />
       </div>
       {/* Location search is temporarily disabled. */}
@@ -670,6 +673,14 @@ export default function Map() {
                     <h3 className="mt-1 text-base font-semibold leading-tight text-foreground sm:text-lg">
                       {selectedSpot.name}
                     </h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Added by {selectedSpot.creator_name ?? 'Unknown skater'}
+                    </p>
+                    {selectedSpot.is_secret && (
+                      <span className="mt-2 inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-amber-700">
+                        Secret spot
+                      </span>
+                    )}
                   </div>
                   <button
                     type="button"

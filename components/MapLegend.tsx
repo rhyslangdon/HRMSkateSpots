@@ -25,6 +25,8 @@ interface MapLegendProps {
   onHideAll: () => void;
   showFavouritesOnly?: boolean;
   onToggleFavourites?: () => void;
+  showSecretOnly?: boolean;
+  onToggleSecret?: () => void;
 }
 
 export default function MapLegend({
@@ -38,6 +40,8 @@ export default function MapLegend({
   onHideAll,
   showFavouritesOnly,
   onToggleFavourites,
+  showSecretOnly,
+  onToggleSecret,
 }: MapLegendProps) {
   const [isOpen, setIsOpen] = useState(false);
   const streetHidden = hiddenTypes.has('street');
@@ -45,7 +49,8 @@ export default function MapLegend({
     hiddenTypes.size > 0 ||
     hiddenFeatures.size > 0 ||
     hiddenDifficulties.size > 0 ||
-    Boolean(showFavouritesOnly);
+    Boolean(showFavouritesOnly) ||
+    Boolean(showSecretOnly);
   const allHidden =
     hiddenTypes.size === SPOT_TYPES.length && hiddenDifficulties.size === DIFFICULTIES.length;
 
@@ -57,7 +62,7 @@ export default function MapLegend({
             Map Filters
           </p>
           <p className="hidden text-xs text-muted-foreground sm:block sm:text-sm">
-            Toggle spot types, favourites, difficulty, and street features.
+            Toggle spot types, favourites, secret spots, difficulty, and street features.
           </p>
         </div>
         <button
@@ -155,6 +160,34 @@ export default function MapLegend({
                   </span>
                   <span className="text-foreground">
                     {showFavouritesOnly ? 'Favourites Only' : 'Favourites'}
+                  </span>
+                </button>
+              )}
+              {onToggleSecret && (
+                <button
+                  type="button"
+                  onClick={onToggleSecret}
+                  className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm transition-all hover:bg-muted ${
+                    showSecretOnly
+                      ? 'border-amber-300 bg-amber-50 text-foreground'
+                      : 'border-border bg-background text-muted-foreground'
+                  }`}
+                  aria-pressed={showSecretOnly}
+                  aria-label={showSecretOnly ? 'Show all visible spots' : 'Show secret spots only'}
+                >
+                  <span
+                    className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border"
+                    style={{ borderColor: '#b45309', background: 'white' }}
+                  >
+                    <span
+                      className="material-symbols-outlined"
+                      style={{ fontSize: '13px', color: '#b45309' }}
+                    >
+                      visibility_lock
+                    </span>
+                  </span>
+                  <span className="text-foreground">
+                    {showSecretOnly ? 'Secret Only' : 'Secret Spots'}
                   </span>
                 </button>
               )}

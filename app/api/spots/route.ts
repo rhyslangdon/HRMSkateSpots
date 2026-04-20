@@ -6,13 +6,50 @@ import type { SpotFormData } from '@/types';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+function parseSecretFlag(value: unknown) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  return typeof value === 'boolean' ? value : null;
+}
+
+function buildCreatorName(profile: { display_name?: string | null; email?: string | null } | null) {
+  if (!profile) {
+    return null;
+  }
+
+  const displayName = profile.display_name?.trim();
+  if (displayName) {
+    return displayName;
+  }
+
+  const email = profile.email?.trim();
+  if (!email) {
+    return null;
+  }
+
+  return email.split('@')[0] || email;
+}
+
+function normalizeSpot<
+  T extends { profiles?: { display_name?: string | null; email?: string | null } | null },
+>(spot: T) {
+  const { profiles, ...spotData } = spot;
+
+  return {
+    ...spotData,
+    creator_name: buildCreatorName(profiles ?? null),
+  };
+}
+
 export async function GET() {
   try {
     const supabase = await createClient();
 
     const { data, error } = await supabase
       .from('spots')
-      .select('*')
+      .select('*, profiles(display_name, email)')
       .eq('is_approved', true)
       .order('created_at', { ascending: false });
 
@@ -24,7 +61,7 @@ export async function GET() {
     }
 
     return NextResponse.json(
-      { data },
+      { data: (data ?? []).map(normalizeSpot) },
       {
         headers: {
           'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
@@ -80,6 +117,12 @@ export async function PATCH(request: NextRequest) {
         { status: 400 }
       );
     }
+    if ('is_secret' in updateData && parseSecretFlag(updateData.is_secret) === null) {
+      return NextResponse.json(
+        { error: 'Validation Error', message: 'Secret spot flag must be true or false.' },
+        { status: 400 }
+      );
+    }
     // Check ownership or admin
     const { data: spot, error: fetchError } = await supabase
       .from('spots')
@@ -110,12 +153,38 @@ export async function PATCH(request: NextRequest) {
         { status: 403 }
       );
     }
+    const secretFlag = parseSecretFlag(updateData.is_secret);
+    const sanitizedUpdateData = {
+      name: typeof updateData.name === 'string' ? updateData.name.trim() : undefined,
+      description:
+        typeof updateData.description === 'string'
+          ? updateData.description.trim() || null
+          : undefined,
+      address:
+        typeof updateData.address === 'string' ? updateData.address.trim() || null : undefined,
+      latitude: typeof updateData.latitude === 'number' ? updateData.latitude : undefined,
+      longitude: typeof updateData.longitude === 'number' ? updateData.longitude : undefined,
+      spot_type: typeof updateData.spot_type === 'string' ? updateData.spot_type : undefined,
+      street_feature:
+        typeof updateData.spot_type === 'string'
+          ? updateData.spot_type === 'street'
+            ? updateData.street_feature || null
+            : null
+          : undefined,
+      difficulty: typeof updateData.difficulty === 'string' ? updateData.difficulty : undefined,
+      bust_factor: typeof updateData.bust_factor === 'number' ? updateData.bust_factor : undefined,
+      image_url:
+        typeof updateData.image_url === 'string' || updateData.image_url === null
+          ? updateData.image_url
+          : undefined,
+      is_secret: secretFlag === undefined ? undefined : secretFlag,
+    };
     // Update spot
     const { data: updated, error: updateError } = await supabase
       .from('spots')
-      .update(updateData)
+      .update(sanitizedUpdateData)
       .eq('id', id)
-      .select()
+      .select('*, profiles(display_name, email)')
       .single();
     if (updateError) {
       return NextResponse.json(
@@ -123,7 +192,7 @@ export async function PATCH(request: NextRequest) {
         { status: 500 }
       );
     }
-    return NextResponse.json({ data: updated, message: 'Spot updated.' });
+    return NextResponse.json({ data: normalizeSpot(updated), message: 'Spot updated.' });
   } catch {
     return NextResponse.json(
       { error: 'Server Error', message: 'Something went wrong.' },
@@ -306,6 +375,12 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    if (parseSecretFlag(body.is_secret) === null) {
+      return NextResponse.json(
+        { error: 'Validation Error', message: 'Secret spot flag must be true or false.' },
+        { status: 400 }
+      );
+    }
 
     const { data, error } = await supabase
       .from('spots')
@@ -322,9 +397,10 @@ export async function POST(request: NextRequest) {
         difficulty: body.difficulty || 'beginner',
         bust_factor: body.bust_factor,
         image_url: body.image_url || null,
+        is_secret: body.is_secret ?? false,
         is_approved: true,
       })
-      .select()
+      .select('*, profiles(display_name, email)')
       .single();
 
     if (error) {
@@ -334,7 +410,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ data, message: 'Spot submitted for approval.' }, { status: 201 });
+    return NextResponse.json(
+      { data: normalizeSpot(data), message: 'Spot submitted for approval.' },
+      { status: 201 }
+    );
   } catch {
     return NextResponse.json(
       { error: 'Server Error', message: 'Something went wrong.' },

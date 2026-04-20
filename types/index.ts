@@ -59,6 +59,7 @@ export type BustFactor = 1 | 2 | 3 | 4 | 5;
 export interface Spot {
   id: string;
   user_id: string;
+  creator_name: string | null;
   name: string;
   description: string | null;
   latitude: number;
@@ -70,6 +71,7 @@ export interface Spot {
   difficulty: Difficulty;
   bust_factor: BustFactor;
   image_url: string | null;
+  is_secret: boolean;
   is_approved: boolean;
   created_at: string;
   updated_at: string;
@@ -83,6 +85,7 @@ export interface SpotFormData {
   street_feature: StreetFeature | null;
   difficulty: Difficulty;
   bust_factor: BustFactor;
+  is_secret: boolean;
 }
 
 export interface Review {

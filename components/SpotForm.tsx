@@ -67,6 +67,7 @@ export default function SpotForm({
           street_feature: initialData.street_feature || null,
           difficulty: initialData.difficulty || 'beginner',
           bust_factor: initialData.bust_factor || 3,
+          is_secret: initialData.is_secret ?? false,
         }
       : {
           name: '',
@@ -76,6 +77,7 @@ export default function SpotForm({
           street_feature: null,
           difficulty: 'beginner',
           bust_factor: 3,
+          is_secret: false,
         }
   );
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -337,6 +339,31 @@ export default function SpotForm({
           className="hidden"
         />
       </label>
+      <div
+        className="flex items-center justify-between gap-3 rounded-md border px-2.5 py-2 hover:border-blue-400 sm:py-1.5"
+        style={{
+          background: 'var(--muted)',
+          color: 'var(--foreground)',
+          borderColor: 'var(--border)',
+        }}
+      >
+        <label htmlFor="spot-secret" className="min-w-0 cursor-pointer">
+          <span className="block text-sm font-medium text-foreground">Secret spot</span>
+          <span className="block text-xs text-muted-foreground">This spot will not be public.</span>
+        </label>
+        <input
+          id="spot-secret"
+          type="checkbox"
+          checked={formData.is_secret}
+          onChange={(e) =>
+            setFormData((prev) => ({
+              ...prev,
+              is_secret: e.target.checked,
+            }))
+          }
+          className="h-4 w-4 shrink-0 rounded border-border"
+        />
+      </div>
 
       {error && (
         <p
