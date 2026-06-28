@@ -25,6 +25,7 @@ import type { Spot, SpotType, StreetFeature, Difficulty } from '@/types';
 import { useFavourites } from '@/hooks/useFavourites';
 import { useTheme } from '@/components/ThemeContext';
 import { useSyncExternalStore } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const SPOT_TYPES: SpotType[] = ['street', 'park', 'diy', 'transition', 'flatground', 'other'];
 const STREET_FEATURES: StreetFeature[] = ['ledge', 'stairs', 'handrail', 'gap', 'bank', 'other'];
@@ -106,18 +107,25 @@ function formatSpotLabel(value: string) {
 export default function Map() {
   const { theme } = useTheme();
   const reduceMotion = useReducedMotion();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [spots, setSpots] = useState<Spot[]>([]);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [userLocationAccuracy, setUserLocationAccuracy] = useState<number | null>(null);
   const [userLocationFocusTarget, setUserLocationFocusTarget] = useState<[number, number] | null>(
     null
   );
+  const [userFocusActive, setUserFocusActive] = useState(false);
+  const userFocusTimeoutRef = useRef<number | null>(null);
+  // derive focus target directly from the selected spot to avoid setState in effects
   const [pendingPosition, setPendingPosition] = useState<[number, number] | null>(null);
   const [pendingPanelMode, setPendingPanelMode] = useState<'prompt' | 'form'>('prompt');
   const [userId, setUserId] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<'user' | 'admin' | null>(null);
   const [editingSpot, setEditingSpot] = useState<Spot | null>(null);
-  const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
+  const [internalSelectedSpotId, setInternalSelectedSpotId] = useState<string | null>(
+    () => searchParams.get('spot') ?? null
+  );
   const [spotPanelView, setSpotPanelView] = useState<'overview' | 'details'>('overview');
   const [deleteSpot, setDeleteSpot] = useState<Spot | null>(null);
   const [hiddenTypes, setHiddenTypes] = useState<Set<SpotType>>(new Set());
@@ -129,6 +137,7 @@ export default function Map() {
   const pendingMarkerRef = useRef<L.Marker | null>(null);
   const geolocationWatchIdRef = useRef<number | null>(null);
   const shouldFocusNextUserLocationRef = useRef(true);
+  const spotIdFromUrl = searchParams.get('spot');
   const isMobileViewport = useSyncExternalStore(
     subscribeToMobileViewport,
     getMobileViewportSnapshot,
@@ -189,6 +198,8 @@ export default function Map() {
     if (hiddenDifficulties.has(s.difficulty)) return false;
     return true;
   });
+
+  const selectedSpotId = spotIdFromUrl ?? internalSelectedSpotId;
 
   const selectedSpot = selectedSpotId
     ? (visibleSpots.find((spot) => spot.id === selectedSpotId) ??
@@ -257,6 +268,14 @@ export default function Map() {
     };
   }, []);
 
+  // URL-driven selection is handled by deriving `selectedSpotId` from
+  // `spotIdFromUrl` or `internalSelectedSpotId` (no setState in effects).
+
+  // derive the focus target from the currently selected spot (no setState inside effects)
+  const selectedSpotFocusTarget: [number, number] | null = selectedSpot
+    ? ([selectedSpot.latitude, selectedSpot.longitude] as [number, number])
+    : null;
+
   useEffect(() => {
     if (!isSpotPanelOpen) {
       return;
@@ -264,7 +283,7 @@ export default function Map() {
 
     function handleKeydown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        setSelectedSpotId(null);
+        setInternalSelectedSpotId(null);
         setSpotPanelView('overview');
       }
     }
@@ -287,6 +306,9 @@ export default function Map() {
 
   useEffect(() => {
     return () => {
+      if (userFocusTimeoutRef.current) {
+        window.clearTimeout(userFocusTimeoutRef.current);
+      }
       if (geolocationWatchIdRef.current !== null && typeof navigator !== 'undefined') {
         navigator.geolocation.clearWatch(geolocationWatchIdRef.current);
       }
@@ -294,7 +316,7 @@ export default function Map() {
   }, []);
 
   function handleMapClick(latlng: [number, number]) {
-    setSelectedSpotId(null);
+    setInternalSelectedSpotId(null);
     setSpotPanelView('overview');
     setEditingSpot(null);
     setPendingPosition(latlng);
@@ -316,6 +338,14 @@ export default function Map() {
       if (shouldFocusNextUserLocationRef.current) {
         shouldFocusNextUserLocationRef.current = false;
         setUserLocationFocusTarget(nextLocation);
+        setUserFocusActive(true);
+        if (userFocusTimeoutRef.current) {
+          window.clearTimeout(userFocusTimeoutRef.current);
+        }
+        userFocusTimeoutRef.current = window.setTimeout(() => {
+          setUserFocusActive(false);
+          userFocusTimeoutRef.current = null;
+        }, 1500);
       }
     };
 
@@ -375,7 +405,7 @@ export default function Map() {
   }
 
   function handleEditSpot(spot: Spot) {
-    setSelectedSpotId(null);
+    setInternalSelectedSpotId(null);
     setSpotPanelView('overview');
     setEditingSpot(spot);
     setPendingPosition([spot.latitude, spot.longitude]);
@@ -430,14 +460,17 @@ export default function Map() {
     setEditingSpot(null);
     setDeleteSpot(null);
     setFavError(null);
-    setSelectedSpotId(spotId);
+    setInternalSelectedSpotId(spotId);
     setSpotPanelView('overview');
+
+    router.replace(`/?spot=${encodeURIComponent(spotId)}`, { scroll: false });
   }
 
   function handleCloseSpotPanel() {
-    setSelectedSpotId(null);
+    setInternalSelectedSpotId(null);
     setSpotPanelView('overview');
     setDeleteSpot(null);
+    router.replace('/', { scroll: false });
   }
 
   function openImagePreview(imageUrl: string, spotName: string) {
@@ -446,6 +479,36 @@ export default function Map() {
 
   function closeImagePreview() {
     setExpandedImage(null);
+  }
+
+  async function handleShareSpot(spot: Spot) {
+    const shareUrl = new URL('/', window.location.origin);
+    shareUrl.searchParams.set('spot', spot.id);
+
+    const shareData = {
+      title: `${spot.name} | HRM Skate Spots`,
+      text: `Check out ${spot.name} on HRM Skate Spots.`,
+      url: shareUrl.toString(),
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return;
+        }
+      }
+    }
+
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(shareData.url);
+      toast.success('Spot link copied to clipboard.');
+      return;
+    }
+
+    toast.error('Sharing is not available in this browser.');
   }
 
   function getImageDownloadHref(imageUrl: string, spotName: string) {
@@ -489,7 +552,11 @@ export default function Map() {
             scrollWheelZoom={true}
             className="h-full w-full rounded-xl"
           >
-            <MapViewportController target={userLocationFocusTarget} zoom={LOCATION_FOCUS_ZOOM} />
+            {selectedSpotFocusTarget ? (
+              <MapViewportController target={selectedSpotFocusTarget} zoom={LOCATION_FOCUS_ZOOM} />
+            ) : userFocusActive && userLocationFocusTarget ? (
+              <MapViewportController target={userLocationFocusTarget} zoom={LOCATION_FOCUS_ZOOM} />
+            ) : null}
             <LayersControl position="topright">
               <LayersControl.BaseLayer checked={theme === 'light'} name="Simple">
                 <TileLayer
@@ -862,6 +929,30 @@ export default function Map() {
                             {isFavourite(selectedSpot.id) ? 'Saved' : 'Save'}
                           </button>
                         )}
+                        {
+                          <button
+                            type="button"
+                            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
+                            onClick={() => handleShareSpot(selectedSpot)}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              className="h-5 w-5"
+                              aria-hidden="true"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M8.684 13.342C9.343 12.374 10.542 11.75 12 11.75c1.458 0 2.657.624 3.316 1.592m-6.632 0A2.251 2.251 0 0 0 6.75 15.5v.25a2.25 2.25 0 0 0 2.25 2.25h5.999a2.25 2.25 0 0 0 2.25-2.25v-.25a2.251 2.251 0 0 0-1.934-2.158m-6.632 0a2.25 2.25 0 0 1 1.933-1.092h.002a2.25 2.25 0 0 1 1.933 1.092m2.764-8.875-3.75-3.75m0 0-3.75 3.75m3.75-3.75v12"
+                              />
+                            </svg>
+                            Share
+                          </button>
+                        }
                       </div>
 
                       {favError && <div className="text-sm text-red-500">{favError}</div>}

@@ -117,21 +117,26 @@ export default async function DashboardPage() {
             ) : (
               <ul className="mt-4 divide-y divide-border">
                 {recentSpots.map((spot) => (
-                  <li key={spot.id} className="flex items-center justify-between py-3">
-                    <div>
-                      <p className="font-medium text-foreground">{spot.name}</p>
-                      <div className="mt-1 flex gap-2">
-                        <span className="rounded-full bg-primary px-2 py-1 text-xs font-semibold text-primary-foreground">
-                          {spot.spot_type}
-                        </span>
-                        <span className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-foreground">
-                          {spot.difficulty}
-                        </span>
+                  <li key={spot.id}>
+                    <Link
+                      href={`/?spot=${encodeURIComponent(spot.id)}`}
+                      className="flex items-center justify-between gap-4 rounded-lg px-3 py-3 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <div>
+                        <p className="font-medium text-foreground">{spot.name}</p>
+                        <div className="mt-1 flex gap-2">
+                          <span className="rounded-full bg-primary px-2 py-1 text-xs font-semibold text-primary-foreground">
+                            {spot.spot_type}
+                          </span>
+                          <span className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-foreground">
+                            {spot.difficulty}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(spot.created_at).toLocaleDateString('en-CA')}
-                    </span>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {new Date(spot.created_at).toLocaleDateString('en-CA')}
+                      </span>
+                    </Link>
                   </li>
                 ))}
               </ul>

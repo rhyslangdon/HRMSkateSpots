@@ -15,20 +15,20 @@ import Link from 'next/link';
 export default function Footer() {
   return (
     <footer className="border-t border-border bg-muted/50">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div
+          className="grid grid-cols-1 gap-6 md:grid-cols-3"
+          style={{ textAlign: 'center', alignItems: 'center' }}
+        >
           {/* --- Brand --- */}
-          <div className="col-span-1 md:col-span-1">
+          <div className="col-span-1 md:col-span-1 flex flex-col items-center justify-center space-y-2">
+            <img src="/bearingLogo.png" alt="HRM Skate Spots Logo" className="h-20 w-20" />
             <h3 className="text-lg font-semibold text-foreground">HRM Skate Spots</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              [Your app tagline or short description goes here. Explain what your product does in
-              one or two sentences.]
-            </p>
           </div>
 
           {/* --- Product Links --- */}
           <div>
-            <h4 className="text-sm font-semibold text-foreground">Product</h4>
+            <h4 className="text-sm font-semibold text-foreground">Resources</h4>
             <ul className="mt-4 space-y-2">
               <li>
                 <Link
@@ -51,7 +51,7 @@ export default function Footer() {
 
           {/* --- Resources Links --- */}
           <div>
-            <h4 className="text-sm font-semibold text-foreground">Resources</h4>
+            <h4 className="text-sm font-semibold text-foreground">Profile</h4>
             <ul className="mt-4 space-y-2">
               <li>
                 <Link
@@ -81,42 +81,7 @@ export default function Footer() {
           </div>
 
           {/* --- Social / Legal --- */}
-          <div>
-            <h4 className="text-sm font-semibold text-foreground">Connect</h4>
-            <ul className="mt-4 space-y-2">
-              {/* STUDENT: Replace these placeholder URLs with your actual social media URLs */}
-              <li>
-                <a
-                  href="https://twitter.com"
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Twitter / X
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://github.com"
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  GitHub
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://linkedin.com"
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  LinkedIn
-                </a>
-              </li>
-            </ul>
-          </div>
+          <div></div>
         </div>
 
         {/* --- Bottom Bar --- */}
