@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { SpotType, StreetFeature, Difficulty } from '@/types';
 import { MotionDropdown, MotionPresence } from '@/components/Motion';
+import { useTheme } from '@/components/ThemeContext';
 import { getSpotIconName } from './SpotMarkerIcon';
 
 const SPOT_TYPES: SpotType[] = ['street', 'park', 'diy', 'transition', 'flatground', 'other'];
@@ -27,6 +28,7 @@ interface MapLegendProps {
   onToggleFavourites?: () => void;
   showSecretOnly?: boolean;
   onToggleSecret?: () => void;
+  theme?: 'light' | 'dark';
 }
 
 export default function MapLegend({
@@ -42,7 +44,10 @@ export default function MapLegend({
   onToggleFavourites,
   showSecretOnly,
   onToggleSecret,
+  theme,
 }: MapLegendProps) {
+  const { theme: contextTheme } = useTheme();
+  const activeTheme = theme ?? contextTheme;
   const [isOpen, setIsOpen] = useState(false);
   const streetHidden = hiddenTypes.has('street');
   const hasActiveFilters =
@@ -141,7 +146,9 @@ export default function MapLegend({
                   onClick={onToggleFavourites}
                   className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm transition-all hover:bg-muted ${
                     showFavouritesOnly
-                      ? 'border-pink-300 bg-pink-50 text-foreground'
+                      ? activeTheme === 'dark'
+                        ? 'border-pink-400/80 bg-pink-500/20 text-foreground'
+                        : 'border-pink-300 bg-pink-50 text-foreground'
                       : 'border-border bg-background text-muted-foreground'
                   }`}
                   aria-pressed={showFavouritesOnly}
@@ -149,7 +156,10 @@ export default function MapLegend({
                 >
                   <span
                     className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border"
-                    style={{ borderColor: '#e91e63', background: 'white' }}
+                    style={{
+                      borderColor: '#e91e63',
+                      background: activeTheme === 'dark' ? '#111827' : 'white',
+                    }}
                   >
                     <span
                       className="material-symbols-outlined"
@@ -169,7 +179,9 @@ export default function MapLegend({
                   onClick={onToggleSecret}
                   className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm transition-all hover:bg-muted ${
                     showSecretOnly
-                      ? 'border-amber-300 bg-amber-50 text-foreground'
+                      ? activeTheme === 'dark'
+                        ? 'border-amber-400/80 bg-amber-500/20 text-foreground'
+                        : 'border-amber-300 bg-amber-50 text-foreground'
                       : 'border-border bg-background text-muted-foreground'
                   }`}
                   aria-pressed={showSecretOnly}
@@ -177,7 +189,10 @@ export default function MapLegend({
                 >
                   <span
                     className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border"
-                    style={{ borderColor: '#b45309', background: 'white' }}
+                    style={{
+                      borderColor: '#b45309',
+                      background: activeTheme === 'dark' ? '#111827' : 'white',
+                    }}
                   >
                     <span
                       className="material-symbols-outlined"

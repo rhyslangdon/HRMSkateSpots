@@ -21,6 +21,7 @@ const eslintConfig = defineConfig([
   {
     rules: {
       ...jsxA11y.configs.recommended.rules,
+      'react-hooks/preserve-manual-memoization': 'off',
     },
   },
   // Override default ignores

@@ -46,8 +46,8 @@ export default function ContactPage() {
             Get in Touch
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            [Have a question or want to learn more? Fill out the form below and we&apos;ll get back
-            to you as soon as possible.]
+            If you are bummed about a spot being on here <br /> or feel the need to etransfer Rhys
+            some cash, reach out.
           </p>
         </div>
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { getSpotIconName, createSpotDivIcon } from './SpotMarkerIcon';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Circle,
   LayersControl,
@@ -272,9 +272,11 @@ export default function Map() {
   // `spotIdFromUrl` or `internalSelectedSpotId` (no setState in effects).
 
   // derive the focus target from the currently selected spot (no setState inside effects)
-  const selectedSpotFocusTarget: [number, number] | null = selectedSpot
-    ? ([selectedSpot.latitude, selectedSpot.longitude] as [number, number])
-    : null;
+  const selectedSpotFocusTarget: [number, number] | null = useMemo(
+    () =>
+      selectedSpot ? ([selectedSpot.latitude, selectedSpot.longitude] as [number, number]) : null,
+    [selectedSpot]
+  );
 
   useEffect(() => {
     if (!isSpotPanelOpen) {
@@ -523,6 +525,7 @@ export default function Map() {
     <div className="flex w-full flex-col gap-3 sm:gap-4">
       <div className="mt-1 sm:mt-6">
         <MapLegend
+          theme={theme}
           hiddenTypes={hiddenTypes}
           onToggleType={handleToggleType}
           hiddenFeatures={hiddenFeatures}
@@ -561,7 +564,7 @@ export default function Map() {
               <LayersControl.BaseLayer checked={theme === 'light'} name="Simple">
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &amp; <a href="https://carto.com/">CARTO</a>'
-                  url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                  url={`https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${process.env.NEXT_PUBLIC_CARTO_API_KEY}`}
                 />
               </LayersControl.BaseLayer>
               <LayersControl.BaseLayer name="Satellite">
@@ -573,99 +576,46 @@ export default function Map() {
               <LayersControl.BaseLayer name="Light">
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &amp; <a href="https://carto.com/">CARTO</a>'
-                  url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                  url={`https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=${process.env.NEXT_PUBLIC_CARTO_API_KEY}`}
                 />
               </LayersControl.BaseLayer>
               <LayersControl.BaseLayer checked={theme === 'dark'} name="Dark">
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &amp; <a href="https://carto.com/">CARTO</a>'
-                  url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                  url={`https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=${process.env.NEXT_PUBLIC_CARTO_API_KEY}`}
                 />
               </LayersControl.BaseLayer>
             </LayersControl>
-            <ClickHandler onMapClick={handleMapClick} />
+
             {userLocation && (
-              <>
-                <Circle
-                  center={userLocation}
-                  radius={userLocationAccuracy ?? 25}
-                  pathOptions={{
-                    color: '#2563eb',
-                    fillColor: '#60a5fa',
-                    fillOpacity: 0.18,
-                    weight: 1,
-                  }}
-                />
-                <Marker position={userLocation} icon={userLocationIcon}>
-                  <Popup className="spot-popup">
-                    <div className="w-44">
-                      <p className="text-sm font-semibold">Your location</p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Accuracy {Math.round(userLocationAccuracy ?? 0)} m
-                      </p>
-                    </div>
-                  </Popup>
-                </Marker>
-              </>
-            )}
-            {pendingPosition && (
-              <Marker
-                position={pendingPosition}
-                ref={isMobileViewport ? undefined : pendingMarkerRef}
-              >
-                {!isMobileViewport && (
-                  <Popup
-                    eventHandlers={{ remove: handleCancelPin }}
-                    minWidth={260}
-                    maxWidth={360}
-                    className="spot-popup"
-                  >
-                    <MotionPresence>
-                      {isPendingPromptOpen ? (
-                        <MotionForm
-                          key="desktop-pending-prompt"
-                          className="mx-auto flex w-[min(16rem,calc(100vw-4.5rem))] flex-col gap-2 rounded-md bg-background p-2 text-foreground shadow sm:w-[16rem]"
-                        >
-                          <p className="text-sm font-semibold">Add a spot here?</p>
-                          <div className="flex gap-2">
-                            <button
-                              type="button"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                handleConfirmAddSpot();
-                              }}
-                              className="min-h-9 flex-1 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-                            >
-                              Add
-                            </button>
-                            <button
-                              type="button"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                handleCancelPin();
-                              }}
-                              className="min-h-9 flex-1 rounded-md border border-border px-3 py-2 text-sm font-semibold text-foreground hover:bg-muted"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </MotionForm>
-                      ) : (
-                        <MotionForm key="desktop-pending-form" className="flex justify-center">
-                          <SpotForm
-                            latitude={pendingPosition[0]}
-                            longitude={pendingPosition[1]}
-                            onSaved={handleSpotSaved}
-                            onCancel={handleCancelPin}
-                            {...(editingSpot ? { initialData: editingSpot } : {})}
-                          />
-                        </MotionForm>
-                      )}
-                    </MotionPresence>
-                  </Popup>
-                )}
+              <Marker position={userLocation} icon={userLocationIcon}>
+                <Popup>
+                  <div className="space-y-1">
+                    <div className="text-sm font-semibold text-foreground">You are here</div>
+                    {userLocationAccuracy !== null && (
+                      <div className="text-xs text-muted-foreground">
+                        Accuracy: {Math.round(userLocationAccuracy)}m
+                      </div>
+                    )}
+                  </div>
+                </Popup>
               </Marker>
             )}
+
+            {pendingPosition && (
+              <Marker
+                ref={pendingMarkerRef}
+                position={pendingPosition}
+                icon={createSpotDivIcon('add_location_alt')}
+              >
+                <Popup closeButton={false}>
+                  <div className="text-sm font-medium text-foreground">
+                    {pendingPanelMode === 'prompt' ? 'Add a spot here?' : 'Spot details'}
+                  </div>
+                </Popup>
+              </Marker>
+            )}
+
             {visibleSpots.map((spot) => (
               <Marker
                 key={spot.id}
@@ -674,7 +624,7 @@ export default function Map() {
                 eventHandlers={{
                   click: () => handleSelectSpot(spot.id),
                 }}
-              ></Marker>
+              />
             ))}
           </MapContainer>
         </div>
