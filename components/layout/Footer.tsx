@@ -32,20 +32,28 @@ export default function Footer() {
             <ul className="mt-4 space-y-2">
               <li>
                 <Link
+                  href="/"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/about"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   About
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link
                   href="/contact"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Contact
                 </Link>
-              </li>
+              </li> */}
             </ul>
           </div>
 

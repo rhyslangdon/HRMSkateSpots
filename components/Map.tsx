@@ -210,7 +210,7 @@ export default function Map() {
   const isPendingPromptOpen = pendingPosition !== null && pendingPanelMode === 'prompt';
   const isPendingFormOpen = pendingPosition !== null && pendingPanelMode === 'form';
   const isMobilePendingPanelOpen = isMobileViewport && pendingPosition !== null;
-  const isMapOverlayOpen = isSpotPanelOpen || isMobilePendingPanelOpen;
+  const isMapOverlayOpen = isSpotPanelOpen || isMobilePendingPanelOpen || isPendingFormOpen;
 
   useEffect(() => {
     const supabase = createClient();
@@ -555,6 +555,7 @@ export default function Map() {
             scrollWheelZoom={true}
             className="h-full w-full rounded-xl"
           >
+            <ClickHandler onMapClick={handleMapClick} />
             {selectedSpotFocusTarget ? (
               <MapViewportController target={selectedSpotFocusTarget} zoom={LOCATION_FOCUS_ZOOM} />
             ) : userFocusActive && userLocationFocusTarget ? (
@@ -609,9 +610,35 @@ export default function Map() {
                 icon={createSpotDivIcon('add_location_alt')}
               >
                 <Popup closeButton={false}>
-                  <div className="text-sm font-medium text-foreground">
-                    {pendingPanelMode === 'prompt' ? 'Add a spot here?' : 'Spot details'}
-                  </div>
+                  {pendingPanelMode === 'prompt' ? (
+                    <div className="flex flex-col gap-2">
+                      <div className="text-sm font-medium text-foreground">Add a spot here?</div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleConfirmAddSpot();
+                          }}
+                          className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700"
+                        >
+                          Add
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleCancelPin();
+                          }}
+                          className="rounded-md border border-border px-3 py-1.5 text-sm font-semibold text-foreground hover:bg-muted"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-sm font-medium text-foreground">Spot details</div>
+                  )}
                 </Popup>
               </Marker>
             )}
@@ -671,6 +698,25 @@ export default function Map() {
                     </MotionForm>
                   )}
                 </MotionPresence>
+              </div>
+            </MotionMapPanel>
+          )}
+        </MotionPresence>
+        <MotionPresence>
+          {isPendingFormOpen && !isMobileViewport && pendingPosition && (
+            <MotionMapPanel
+              key="desktop-pending-form"
+              className="pointer-events-none absolute inset-y-4 right-4 z-[550] w-[24rem]"
+            >
+              <div className="pointer-events-auto flex max-h-full flex-col overflow-y-auto rounded-2xl border border-border bg-background/95 p-3 shadow-2xl backdrop-blur">
+                <SpotForm
+                  latitude={pendingPosition[0]}
+                  longitude={pendingPosition[1]}
+                  onSaved={handleSpotSaved}
+                  onCancel={handleCancelPin}
+                  mode="overlay"
+                  {...(editingSpot ? { initialData: editingSpot } : {})}
+                />
               </div>
             </MotionMapPanel>
           )}

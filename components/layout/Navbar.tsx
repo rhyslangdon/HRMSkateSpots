@@ -124,24 +124,24 @@ export default function Navbar() {
 
           {/* --- Desktop Navigation --- */}
           <div className="hidden items-center gap-8 md:flex">
-            <Link
+            {/* <Link
               href="/"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               Home
-            </Link>
-            <Link
+            </Link> */}
+            {/* <Link
               href="/about"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               About
-            </Link>
-            <Link
+            </Link> */}
+            {/* <Link
               href="/contact"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               Contact
-            </Link>
+            </Link> */}
           </div>
 
           {/* --- Desktop Auth/Profile Dropdown --- */}
@@ -284,13 +284,13 @@ export default function Navbar() {
               >
                 About
               </Link>
-              <Link
+              {/* <Link
                 href="/contact"
                 className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Contact
-              </Link>
+              </Link> */}
               <hr className="my-2 border-border" />
               {isLoggedIn ? (
                 <details className="group">

@@ -236,23 +236,24 @@ export default function ProfilePage() {
   return (
     <div className="px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-3xl">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-3xl font-bold text-foreground">Account Settings</h1>
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-            aria-label="Toggle light/dark mode"
-            type="button"
-          >
-            <span>Toggle theme</span>
-          </button>
-          <Link
-            href="/dashboard"
-            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-          >
-            View Your Dashboard
-          </Link>
+          <div className="flex w-full gap-2 sm:w-auto">
+            <button
+              onClick={toggleTheme}
+              className="inline-flex h-10 min-h-10 flex-1 items-center justify-center rounded-lg border border-border px-3 text-center text-sm font-medium leading-tight text-foreground transition-colors hover:bg-muted sm:flex-none sm:px-4"
+              aria-label="Toggle light/dark mode"
+              type="button"
+            >
+              <span>Toggle theme</span>
+            </button>
+            <Link
+              href="/dashboard"
+              className="inline-flex h-10 min-h-10 flex-1 items-center justify-center rounded-lg border border-border px-3 text-center text-sm font-medium leading-tight text-foreground transition-colors hover:bg-muted sm:flex-none sm:px-4"
+            >
+              View Your Dashboard
+            </Link>
+          </div>
         </div>
 
         <p className="mt-2 text-muted-foreground">Manage your profile and preferences.</p>
