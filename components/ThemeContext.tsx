@@ -24,9 +24,9 @@ function getPreferredTheme(): Theme {
   const stored = localStorage.getItem(THEME_KEY);
   if (stored === 'light' || stored === 'dark') return stored;
   // Use system preference
-  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    return 'dark';
-  }
+  // if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+  //   return 'dark';
+  // }
   return 'light';
 }
 
